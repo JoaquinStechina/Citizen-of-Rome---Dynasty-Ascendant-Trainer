@@ -5,7 +5,9 @@
 //   1. Steam -> juego -> Propiedades -> Opciones de lanzamiento:
 //        --remote-debugging-port=9222
 //   2. Abre el juego y carga tu partida.
-//   3. node trainer.mjs            (o: node trainer.mjs --check para validar sin el juego)
+//   3. node trainer.mjs
+//        --dev    reinyecta el panel al guardar cambios en src/ o locales/
+//        --check  valida src/ y locales/ sin abrir el juego
 //   4. En el juego, pulsa F8 para mostrar/ocultar el panel del trainer.
 //
 // El script queda conectado y vuelve a inyectar el panel si el juego recarga
@@ -17,7 +19,7 @@
 // require('core/ui') y module.exports. El punto de entrada es src/main.js.
 // Los textos están en locales/<idioma>.json y llegan al panel como el módulo "locales".
 
-import { readFileSync, readdirSync } from 'fs'
+import { readFileSync, readdirSync, watch } from 'fs'
 import { dirname, join, relative, basename } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -180,6 +182,25 @@ async function main() {
 
   if (await tryInject()) console.log('Panel listo. Pulsa F8 dentro del juego para mostrarlo u ocultarlo.')
   else console.log('El juego aún no tiene una partida cargada; el panel aparecerá al recargar.')
+
+  // --dev: al guardar un archivo de src/ o locales/, reinyecta el panel (agrupando
+  // los cambios que llegan casi a la vez, p. ej. varios archivos guardados juntos).
+  if (process.argv.includes('--dev')) {
+    let timer, changed = new Set()
+    for (const dir of [SRC, LOCALES]) {
+      watch(dir, { recursive: true }, (event, file) => {
+        if (!file || !/\.(js|json)$/.test(file)) return // ignora temporales de editores
+        changed.add(relative(ROOT, join(dir, file)).replace(/\\/g, '/'))
+        clearTimeout(timer)
+        timer = setTimeout(async () => {
+          console.log(`Cambios en ${[...changed].join(', ') || 'archivos'}: reinyectando panel...`)
+          changed = new Set()
+          if (await tryInject()) console.log('Panel actualizado.')
+        }, 200)
+      })
+    }
+    console.log('Modo desarrollo: los cambios en src/ y locales/ se aplican al guardar.')
+  }
 
   ws.onclose = () => { console.log('El juego se cerró. Saliendo.'); process.exit(0) }
   console.log('Deja esta ventana abierta. Ctrl+C para salir.')

@@ -15,6 +15,8 @@ const COL_MIN = 290, COL_GAP = 18
 const SECTION_IDS = FEATURES.map(f => f.id)
 
 function build() {
+  // Si estaba oculto con F8 (p. ej. al reinyectar en modo --dev), sigue oculto.
+  const wasHidden = document.getElementById('cor-trainer')?.style.display === 'none'
   document.getElementById('cor-trainer')?.remove()
   window.__corTrainerRO?.disconnect()
   const ui = createUI()
@@ -201,6 +203,7 @@ function build() {
   }
 
   applyOrder()
+  if (wasHidden) frame.style.display = 'none'
   document.body.appendChild(frame)
 
   clearInterval(window.__corTrainerTimer)
