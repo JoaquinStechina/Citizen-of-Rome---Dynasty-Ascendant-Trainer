@@ -29,7 +29,7 @@ const PANEL = String.raw`(() => {
   // Los nombres de rasgos, trabajos y propiedades vienen del juego (solo trae inglés).
   const I18N = {
     es: {
-      langName: 'Español (Argentina)', moveUp: 'Mover antes', moveDown: 'Mover después', dragHint: 'Arrastrar para mover el panel · esquina inferior derecha para redimensionar', resetLayout: 'Restablecer posición, tamaño y orden', dragSection: 'Arrastrar para reordenar · clic en el nombre para plegar', petLife: 'adulta a los {adult}, vive ~{life} años', age: 'Edad', bornIn: 'nació en el año {year}', hideHint: 'F8 oculta',
+      langName: 'Español (Argentina)', resizeHint: 'Arrastrar para redimensionar', estate: 'Propiedades de la casa', toLimit: 'Al límite', allToLimit: 'Todo al límite', propNote: 'El límite depende de tu clase y administración. Por encima de 1,2× el límite el juego puede hacerte perder propiedades (robos, enfermedades).', moveUp: 'Mover antes', moveDown: 'Mover después', dragHint: 'Arrastrar para mover el panel · bordes y esquinas para redimensionar', resetLayout: 'Restablecer posición, tamaño y orden', dragSection: 'Arrastrar para reordenar · clic en el nombre para plegar', petLife: 'adulta a los {adult}, vive ~{life} años', age: 'Edad', bornIn: 'nació en el año {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Familia', pets: 'Mascotas', multipliers: 'Multiplicadores',
       cash: 'Dinero', influence: 'Influencia', prestige: 'Prestigio',
       intelligence: 'Inteligencia', stewardship: 'Administración', eloquence: 'Elocuencia', combat: 'Combate',
@@ -56,7 +56,7 @@ const PANEL = String.raw`(() => {
       health: 'Salud', fertility: 'Fertilidad', expenses: 'Gastos', stewardshipShort: 'Administración', xOfY: '{x} de {y}',
     },
     pt: {
-      langName: 'Português (Brasil)', moveUp: 'Mover para antes', moveDown: 'Mover para depois', dragHint: 'Arraste para mover o painel · canto inferior direito para redimensionar', resetLayout: 'Restaurar posição, tamanho e ordem', dragSection: 'Arraste para reordenar · clique no nome para recolher', petLife: 'adulto aos {adult}, vive ~{life} anos', age: 'Idade', bornIn: 'nasceu no ano {year}', hideHint: 'F8 oculta',
+      langName: 'Português (Brasil)', resizeHint: 'Arraste para redimensionar', estate: 'Propriedades da casa', toLimit: 'No limite', allToLimit: 'Tudo no limite', propNote: 'O limite depende da sua classe e administração. Acima de 1,2× o limite o jogo pode fazer você perder propriedades (roubos, doenças).', moveUp: 'Mover para antes', moveDown: 'Mover para depois', dragHint: 'Arraste para mover o painel · bordas e cantos para redimensionar', resetLayout: 'Restaurar posição, tamanho e ordem', dragSection: 'Arraste para reordenar · clique no nome para recolher', petLife: 'adulto aos {adult}, vive ~{life} anos', age: 'Idade', bornIn: 'nasceu no ano {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Família', pets: 'Mascotes', multipliers: 'Multiplicadores',
       cash: 'Dinheiro', influence: 'Influência', prestige: 'Prestígio',
       intelligence: 'Inteligência', stewardship: 'Administração', eloquence: 'Eloquência', combat: 'Combate',
@@ -83,7 +83,7 @@ const PANEL = String.raw`(() => {
       health: 'Saúde', fertility: 'Fertilidade', expenses: 'Despesas', stewardshipShort: 'Administração', xOfY: '{x} de {y}',
     },
     en: {
-      langName: 'English (US)', moveUp: 'Move earlier', moveDown: 'Move later', dragHint: 'Drag to move the panel · bottom-right corner to resize', resetLayout: 'Reset position, size and order', dragSection: 'Drag to reorder · click the name to collapse', petLife: 'adult at {adult}, lives ~{life} yrs', age: 'Age', bornIn: 'born in year {year}', hideHint: 'F8 hides',
+      langName: 'English (US)', resizeHint: 'Drag to resize', estate: 'Household properties', toLimit: 'To limit', allToLimit: 'All to limit', propNote: 'The limit depends on your class and stewardship. Above 1.2× the limit the game may make you lose properties (theft, disease).', moveUp: 'Move earlier', moveDown: 'Move later', dragHint: 'Drag to move the panel · edges and corners to resize', resetLayout: 'Reset position, size and order', dragSection: 'Drag to reorder · click the name to collapse', petLife: 'adult at {adult}, lives ~{life} yrs', age: 'Age', bornIn: 'born in year {year}', hideHint: 'F8 hides',
       resources: 'Resources', family: 'Family', pets: 'Pets', multipliers: 'Multipliers',
       cash: 'Money', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Stewardship', eloquence: 'Eloquence', combat: 'Combat',
@@ -110,7 +110,7 @@ const PANEL = String.raw`(() => {
       health: 'Health', fertility: 'Fertility', expenses: 'Expenses', stewardshipShort: 'Stewardship', xOfY: '{x} of {y}',
     },
     ru: {
-      langName: 'Русский', moveUp: 'Переместить раньше', moveDown: 'Переместить позже', dragHint: 'Перетащите, чтобы переместить панель · правый нижний угол — изменить размер', resetLayout: 'Сбросить положение, размер и порядок', dragSection: 'Перетащите для смены порядка · нажмите на название, чтобы свернуть', petLife: 'взрослый в {adult}, живёт ~{life} лет', age: 'Возраст', bornIn: 'год рождения: {year}', hideHint: 'F8 — скрыть',
+      langName: 'Русский', resizeHint: 'Перетащите, чтобы изменить размер', estate: 'Имущество семьи', toLimit: 'До лимита', allToLimit: 'Всё до лимита', propNote: 'Лимит зависит от вашего класса и управления. Если превысить его в 1,2 раза, игра может отнять часть имущества (кражи, болезни).', moveUp: 'Переместить раньше', moveDown: 'Переместить позже', dragHint: 'Перетащите, чтобы переместить панель · края и углы — изменить размер', resetLayout: 'Сбросить положение, размер и порядок', dragSection: 'Перетащите для смены порядка · нажмите на название, чтобы свернуть', petLife: 'взрослый в {adult}, живёт ~{life} лет', age: 'Возраст', bornIn: 'год рождения: {year}', hideHint: 'F8 — скрыть',
       resources: 'Ресурсы', family: 'Семья', pets: 'Питомцы', multipliers: 'Множители',
       cash: 'Деньги', influence: 'Влияние', prestige: 'Престиж',
       intelligence: 'Интеллект', stewardship: 'Управление', eloquence: 'Красноречие', combat: 'Бой',
@@ -137,7 +137,7 @@ const PANEL = String.raw`(() => {
       health: 'Здоровье', fertility: 'Плодовитость', expenses: 'Расходы', stewardshipShort: 'Управление', xOfY: '{x}: {y}',
     },
     fr: {
-      langName: 'Français', moveUp: 'Déplacer avant', moveDown: 'Déplacer après', dragHint: 'Glisser pour déplacer le panneau · coin inférieur droit pour redimensionner', resetLayout: 'Réinitialiser position, taille et ordre', dragSection: 'Glisser pour réordonner · cliquer sur le nom pour replier', petLife: 'adulte à {adult} ans, vit ~{life} ans', age: 'Âge', bornIn: "né en l'an {year}", hideHint: 'F8 masque',
+      langName: 'Français', resizeHint: 'Glisser pour redimensionner', estate: 'Propriétés du foyer', toLimit: 'Au max', allToLimit: 'Tout au max', propNote: 'La limite dépend de votre classe et de votre intendance. Au-delà de 1,2× la limite, le jeu peut vous faire perdre des propriétés (vols, maladies).', moveUp: 'Déplacer avant', moveDown: 'Déplacer après', dragHint: 'Glisser pour déplacer le panneau · bords et coins pour redimensionner', resetLayout: 'Réinitialiser position, taille et ordre', dragSection: 'Glisser pour réordonner · cliquer sur le nom pour replier', petLife: 'adulte à {adult} ans, vit ~{life} ans', age: 'Âge', bornIn: "né en l'an {year}", hideHint: 'F8 masque',
       resources: 'Ressources', family: 'Famille', pets: 'Animaux', multipliers: 'Multiplicateurs',
       cash: 'Argent', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Intendance', eloquence: 'Éloquence', combat: 'Combat',
@@ -164,7 +164,7 @@ const PANEL = String.raw`(() => {
       health: 'Santé', fertility: 'Fertilité', expenses: 'Dépenses', stewardshipShort: 'Intendance', xOfY: '{x} de {y}',
     },
     de: {
-      langName: 'Deutsch', moveUp: 'Nach vorne', moveDown: 'Nach hinten', dragHint: 'Ziehen zum Verschieben · untere rechte Ecke zum Ändern der Größe', resetLayout: 'Position, Größe und Reihenfolge zurücksetzen', dragSection: 'Ziehen zum Umordnen · auf den Namen klicken zum Einklappen', petLife: 'erwachsen mit {adult}, lebt ~{life} Jahre', age: 'Alter', bornIn: 'geboren im Jahr {year}', hideHint: 'F8 blendet aus',
+      langName: 'Deutsch', resizeHint: 'Ziehen zum Ändern der Größe', estate: 'Besitz des Haushalts', toLimit: 'Bis Limit', allToLimit: 'Alles bis Limit', propNote: 'Das Limit hängt von Klasse und Verwaltung ab. Über dem 1,2-Fachen des Limits kann das Spiel dir Besitz wegnehmen (Diebstahl, Krankheit).', moveUp: 'Nach vorne', moveDown: 'Nach hinten', dragHint: 'Ziehen zum Verschieben · Ränder und Ecken zum Ändern der Größe', resetLayout: 'Position, Größe und Reihenfolge zurücksetzen', dragSection: 'Ziehen zum Umordnen · auf den Namen klicken zum Einklappen', petLife: 'erwachsen mit {adult}, lebt ~{life} Jahre', age: 'Alter', bornIn: 'geboren im Jahr {year}', hideHint: 'F8 blendet aus',
       resources: 'Ressourcen', family: 'Familie', pets: 'Haustiere', multipliers: 'Multiplikatoren',
       cash: 'Geld', influence: 'Einfluss', prestige: 'Prestige',
       intelligence: 'Intelligenz', stewardship: 'Verwaltung', eloquence: 'Redekunst', combat: 'Kampf',
@@ -245,6 +245,10 @@ const PANEL = String.raw`(() => {
       add: (p, id) => req('d6d3').a({ state: S(), petId: p.id, trait: id }),
       remove: (p, id) => req('d217').a({ state: S(), petId: p.id, trait: id, forceClearStack: true }) }
   })
+  const PROPS = load('propiedades', req => {
+    const P = req('08e5').default, L = req('5785').default
+    return { types: P.types, groups: P.groups, titles: L.types || {}, groupTitles: L.groups || {}, max: k => req('40cf').default(S(), k) }
+  })
   const MODS = load('multiplicadores', req => ({
     add: (key, id, factor, description) => req('dbe5').default(S(), { key, id, factor, description }),
     remove: (key, id) => req('f761').a(S(), key, id),
@@ -281,7 +285,7 @@ const PANEL = String.raw`(() => {
   const el = (tag, css, parent) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (parent) parent.appendChild(e); return e }
 
   const DEFAULT_W = 360
-  const SECTION_IDS = ['resources', 'family', 'pets', 'multipliers']
+  const SECTION_IDS = ['resources', 'family', 'pets', 'estate', 'multipliers']
 
   // Construye el panel entero en el idioma actual. Cambiar de idioma lo reconstruye.
   let refresh = () => {}
@@ -289,33 +293,75 @@ const PANEL = String.raw`(() => {
     document.getElementById('cor-trainer')?.remove()
     window.__corTrainerRO?.disconnect()
     // Posición y tamaño: el panel se puede arrastrar (desde el título) y
-    // redimensionar (esquina inferior derecha). Ambos se recuerdan.
+    // redimensionar desde cualquier borde o esquina. Ambos se recuerdan.
+    // "frame" es la ventana (borde, sombra, asas de redimensionado);
+    // "box" es el contenido con scroll.
     const layout = ls.get('corTrainerLayout', {})
-    const box = el('div', 'position:fixed;z-index:2147483647;background:rgba(20,16,12,.94);box-sizing:border-box;' +
-      'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;padding:10px 12px;border:1px solid #b08d57;' +
-      'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);min-width:280px;min-height:120px;' +
-      'overflow:auto;resize:both;user-select:none')
-    box.id = 'cor-trainer'
-    box.lang = lang
-    box.style.width = Math.min(layout.w || DEFAULT_W, innerWidth - 8) + 'px'
-    if (layout.h) box.style.height = Math.min(layout.h, innerHeight - 8) + 'px'
-    else box.style.maxHeight = '90vh'
+    const frame = el('div', 'position:fixed;z-index:2147483647;background:rgba(20,16,12,.94);box-sizing:border-box;' +
+      'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;border:1px solid #b08d57;display:flex;flex-direction:column;' +
+      'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);user-select:none')
+    frame.id = 'cor-trainer'
+    frame.lang = lang
+    const box = el('div', 'padding:10px 12px;overflow:auto;flex:1 1 auto;min-height:0', frame)
+    const MIN_W = 280, MIN_H = 120
+    frame.style.width = Math.min(layout.w || DEFAULT_W, innerWidth - 8) + 'px'
+    if (layout.h) frame.style.height = Math.min(layout.h, innerHeight - 8) + 'px'
+    else frame.style.maxHeight = '90vh'
     const place = (x, y) => {
-      box.style.left = Math.round(Math.max(0, Math.min(x, innerWidth - 80))) + 'px'
-      box.style.top = Math.round(Math.max(0, Math.min(y, innerHeight - 40))) + 'px'
+      frame.style.left = Math.round(Math.max(0, Math.min(x, innerWidth - 80))) + 'px'
+      frame.style.top = Math.round(Math.max(0, Math.min(y, innerHeight - 40))) + 'px'
     }
-    place(layout.x ?? innerWidth - parseInt(box.style.width) - 12, layout.y ?? 12)
+    place(layout.x ?? innerWidth - parseInt(frame.style.width) - 12, layout.y ?? 12)
     let saveTimer
     const saveLayout = () => {
       clearTimeout(saveTimer)
-      saveTimer = setTimeout(() => box.offsetWidth > 0 && ls.set('corTrainerLayout', { // oculto (F8) = no guardar
-        x: box.offsetLeft, y: box.offsetTop, w: box.offsetWidth, h: box.style.height ? box.offsetHeight : undefined,
+      saveTimer = setTimeout(() => frame.offsetWidth > 0 && ls.set('corTrainerLayout', { // oculto (F8) = no guardar
+        x: frame.offsetLeft, y: frame.offsetTop, w: frame.offsetWidth, h: frame.style.height ? frame.offsetHeight : undefined,
       }), 250)
     }
     window.__corTrainerRO = new ResizeObserver(saveLayout)
-    window.__corTrainerRO.observe(box)
+    window.__corTrainerRO.observe(frame)
     // Que las teclas escritas en el panel no disparen atajos del juego (salvo F8).
-    box.addEventListener('keydown', e => { if (e.key !== 'F8') e.stopPropagation() })
+    frame.addEventListener('keydown', e => { if (e.key !== 'F8') e.stopPropagation() })
+
+    // Asas de redimensionado: 4 bordes + 4 esquinas. Sobresalen 4px hacia fuera
+    // para que sean fáciles de agarrar sin tapar el contenido.
+    const HANDLES = {
+      n: 'top:-4px;left:10px;right:10px;height:8px;cursor:ns-resize',
+      s: 'bottom:-4px;left:10px;right:10px;height:8px;cursor:ns-resize',
+      e: 'right:-4px;top:10px;bottom:10px;width:8px;cursor:ew-resize',
+      w: 'left:-4px;top:10px;bottom:10px;width:8px;cursor:ew-resize',
+      ne: 'top:-5px;right:-5px;width:14px;height:14px;cursor:nesw-resize',
+      nw: 'top:-5px;left:-5px;width:14px;height:14px;cursor:nwse-resize',
+      se: 'bottom:-5px;right:-5px;width:14px;height:14px;cursor:nwse-resize',
+      sw: 'bottom:-5px;left:-5px;width:14px;height:14px;cursor:nesw-resize',
+    }
+    for (const [dir, css] of Object.entries(HANDLES)) {
+      const h = el('div', 'position:absolute;z-index:2;' + css, frame)
+      h.title = t('resizeHint')
+      h.addEventListener('mousedown', e => {
+        if (e.button !== 0) return
+        e.preventDefault()
+        const sx = e.clientX, sy = e.clientY
+        const r = { x: frame.offsetLeft, y: frame.offsetTop, w: frame.offsetWidth, h: frame.offsetHeight }
+        const move = ev => {
+          const dx = ev.clientX - sx, dy = ev.clientY - sy
+          let { x, y, w, h: hh } = r
+          if (dir.includes('e')) w = Math.min(Math.max(MIN_W, r.w + dx), innerWidth - r.x)
+          if (dir.includes('s')) hh = Math.min(Math.max(MIN_H, r.h + dy), innerHeight - r.y)
+          if (dir.includes('w')) { w = Math.min(Math.max(MIN_W, r.w - dx), r.x + r.w); x = r.x + r.w - w }
+          if (dir.includes('n')) { hh = Math.min(Math.max(MIN_H, r.h - dy), r.y + r.h); y = r.y + r.h - hh }
+          frame.style.left = x + 'px'
+          frame.style.top = y + 'px'
+          frame.style.width = w + 'px'
+          if (dir.includes('n') || dir.includes('s')) { frame.style.height = hh + 'px'; frame.style.maxHeight = 'none' }
+        }
+        const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); document.body.style.cursor = ''; saveLayout() }
+        document.body.style.cursor = getComputedStyle(h).cursor
+        addEventListener('mousemove', move)
+        addEventListener('mouseup', up)
+      })
+    }
 
     // Cabecera: título (arrastrable) + botón de reinicio + banderas de idioma.
     const header = el('div', 'margin-bottom:6px', box)
@@ -331,7 +377,7 @@ const PANEL = String.raw`(() => {
     reset.onclick = () => { ls.set('corTrainerLayout', {}); ls.set('corTrainerOrder', null); build() }
     titleLine.addEventListener('mousedown', e => {
       if (e.button !== 0 || e.target.closest('button')) return
-      const dx = e.clientX - box.offsetLeft, dy = e.clientY - box.offsetTop
+      const dx = e.clientX - frame.offsetLeft, dy = e.clientY - frame.offsetTop
       const move = ev => place(ev.clientX - dx, ev.clientY - dy)
       const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); saveLayout() }
       addEventListener('mousemove', move)
@@ -415,13 +461,17 @@ const PANEL = String.raw`(() => {
     }
 
     // Fila: etiqueta, campo editable (Enter o salir del campo = aplicar) y botones +N.
-    // Opcionales: c.enabled() desactiva la fila, c.extra añade botones, c.suffix() una nota debajo.
+    // Opcionales: c.enabled() desactiva la fila, c.extra añade botones, c.suffix() una nota debajo,
+    // c.inline() un texto corto junto al campo (con c.inlineColor()), c.wide = etiqueta flexible
+    // y campo estrecho (para nombres largos), c.tip = ayuda al pasar el ratón por la etiqueta.
     const rows = []
     function addRow(c, parent) {
       const row = el('div', 'display:flex;align-items:center;gap:4px;margin:4px 0', parent)
-      const label = el('span', 'width:92px;flex-shrink:0', row)
+      const label = el('span', c.wide ? 'flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap' : 'width:92px;flex-shrink:0', row)
       label.textContent = c.label
-      const input = el('input', CTRL_CSS + ';flex:1;min-width:0;padding:1px 4px;text-align:right;font-variant-numeric:tabular-nums', row)
+      label.title = c.tip || (c.wide ? c.label : '')
+      const input = el('input', CTRL_CSS + ';' + (c.wide ? 'width:72px;flex:none' : 'flex:1;min-width:0') + ';padding:1px 4px;text-align:right;font-variant-numeric:tabular-nums', row)
+      const inline = c.inline ? el('span', 'font-size:11px;min-width:44px;font-variant-numeric:tabular-nums', row) : null
       input.type = 'number'
       input.step = 'any'
       input.addEventListener('change', () => {
@@ -438,7 +488,7 @@ const PANEL = String.raw`(() => {
       for (const [text, fn, tip] of c.extra || []) btns.push(button(row, text, fn, tip))
       let sub = null
       if (c.suffix) sub = el('div', 'font-size:11px;opacity:.7;text-align:right;margin:-3px 0 4px', parent)
-      rows.push({ c, input, btns, sub })
+      rows.push({ c, input, btns, sub, inline })
     }
 
     // Editor de rasgos reutilizable (personajes y mascotas).
@@ -700,17 +750,57 @@ const PANEL = String.raw`(() => {
     })
     note(secMods, t('legend'))
 
+    // --- Sección: Propiedades de la casa -------------------------------------
+    // current.propertyDetails guarda cuántas unidades tienes de cada tipo. El
+    // juego calcula un límite administrable (según clase y administración); por
+    // encima de 1,2× el límite hay eventos que te hacen perder propiedades.
+    const secProps = section('estate')
+    if (!PROPS) note(secProps, t('notAvailable'))
+    else {
+      const details = () => S().current.propertyDetails
+      const setCount = (k, v) => {
+        const d = details(), n = Math.max(0, Math.floor(v))
+        if (k in d) d[k] = n
+        else store()._vm.$set(d, k, n) // clave nueva: hacerla reactiva (Vue 2)
+      }
+      const limit = k => Math.floor(PROPS.max(k) || 0)
+      const propBulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin:2px 0 4px', secProps)
+      button(propBulk, t('allToLimit'), () => Object.keys(PROPS.types).forEach(k => setCount(k, limit(k))))
+      for (const g of ['land', 'animal', 'boat', 'estate']) {
+        const keys = (PROPS.groups[g]?.properties || []).filter(k => PROPS.types[k])
+        if (!keys.length) continue
+        subheading(secProps, PROPS.groupTitles[g] || g)
+        for (const k of keys) addRow({
+          label: PROPS.titles[k]?.title || k, wide: true,
+          tip: (PROPS.titles[k]?.title || k) + (PROPS.titles[k]?.units ? ' (' + PROPS.titles[k].units + ')' : ''),
+          get: () => details()?.[k] || 0,
+          set: v => setCount(k, v),
+          steps: [10],
+          extra: [[t('toLimit'), () => setCount(k, limit(k))]],
+          inline: () => '/ ' + limit(k),
+          inlineColor: () => {
+            const n = details()?.[k] || 0, m = limit(k)
+            return n > m * 1.2 ? '#e38a7a' : n > m ? '#e0c07a' : ''
+          },
+        }, secProps)
+      }
+      note(secProps, t('propNote'))
+    }
+
     applyOrder()
-    document.body.appendChild(box)
+    document.body.appendChild(frame)
 
     // --- Refresco -------------------------------------------------------------
     refresh = force => {
       for (const fn of refreshers) { try { fn(force) } catch (e) { console.warn('[trainer]', e) } }
-      for (const { c, input, btns, sub } of rows) {
+      for (const { c, input, btns, sub, inline } of rows) {
         let on = true; try { on = c.enabled ? c.enabled() : true } catch { on = false }
         input.disabled = !on
         btns.forEach(b => { b.disabled = !on; b.style.opacity = on ? '' : '.4' })
         if (sub) { try { sub.textContent = c.suffix() } catch {} }
+        if (inline) {
+          try { inline.textContent = c.inline(); inline.style.color = c.inlineColor ? c.inlineColor() : ''; inline.style.opacity = inline.style.color ? '1' : '.7' } catch {}
+        }
         if (document.activeElement === input) continue // no pisar lo que estás escribiendo
         let v; try { v = c.get() } catch {}
         input.value = fmt(v)
