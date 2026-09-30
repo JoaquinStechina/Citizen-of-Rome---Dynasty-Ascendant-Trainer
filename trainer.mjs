@@ -754,7 +754,9 @@ const PANEL = String.raw`(() => {
     // current.propertyDetails guarda cuántas unidades tienes de cada tipo. El
     // juego calcula un límite administrable (según clase y administración); por
     // encima de 1,2× el límite hay eventos que te hacen perder propiedades.
+    // Esta sección ocupa todo el ancho del panel y reparte sus grupos en columnas.
     const secProps = section('estate')
+    cards.estate.style.gridColumn = '1 / -1'
     if (!PROPS) note(secProps, t('notAvailable'))
     else {
       const details = () => S().current.propertyDetails
@@ -766,10 +768,12 @@ const PANEL = String.raw`(() => {
       const limit = k => Math.floor(PROPS.max(k) || 0)
       const propBulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin:2px 0 4px', secProps)
       button(propBulk, t('allToLimit'), () => Object.keys(PROPS.types).forEach(k => setCount(k, limit(k))))
+      const propGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));column-gap:22px;align-items:start', secProps)
       for (const g of ['land', 'animal', 'boat', 'estate']) {
         const keys = (PROPS.groups[g]?.properties || []).filter(k => PROPS.types[k])
         if (!keys.length) continue
-        subheading(secProps, PROPS.groupTitles[g] || g)
+        const col = el('div', 'min-width:0', propGrid)
+        subheading(col, PROPS.groupTitles[g] || g)
         for (const k of keys) addRow({
           label: PROPS.titles[k]?.title || k, wide: true,
           tip: (PROPS.titles[k]?.title || k) + (PROPS.titles[k]?.units ? ' (' + PROPS.titles[k].units + ')' : ''),
@@ -782,7 +786,7 @@ const PANEL = String.raw`(() => {
             const n = details()?.[k] || 0, m = limit(k)
             return n > m * 1.2 ? '#e38a7a' : n > m ? '#e0c07a' : ''
           },
-        }, secProps)
+        }, col)
       }
       note(secProps, t('propNote'))
     }
