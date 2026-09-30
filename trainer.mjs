@@ -29,7 +29,7 @@ const PANEL = String.raw`(() => {
   // Los nombres de rasgos, trabajos y propiedades vienen del juego (solo trae inglés).
   const I18N = {
     es: {
-      langName: 'Español (Argentina)', age: 'Edad', bornIn: 'nació en el año {year}', hideHint: 'F8 oculta',
+      langName: 'Español (Argentina)', moveUp: 'Mover antes', moveDown: 'Mover después', dragHint: 'Arrastrar para mover el panel · esquina inferior derecha para redimensionar', resetLayout: 'Restablecer posición, tamaño y orden', dragSection: 'Arrastrar para reordenar · clic en el nombre para plegar', petLife: 'adulta a los {adult}, vive ~{life} años', age: 'Edad', bornIn: 'nació en el año {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Familia', pets: 'Mascotas', multipliers: 'Multiplicadores',
       cash: 'Dinero', influence: 'Influencia', prestige: 'Prestigio',
       intelligence: 'Inteligencia', stewardship: 'Administración', eloquence: 'Elocuencia', combat: 'Combate',
@@ -56,7 +56,7 @@ const PANEL = String.raw`(() => {
       health: 'Salud', fertility: 'Fertilidad', expenses: 'Gastos', stewardshipShort: 'Administración', xOfY: '{x} de {y}',
     },
     pt: {
-      langName: 'Português (Brasil)', age: 'Idade', bornIn: 'nasceu no ano {year}', hideHint: 'F8 oculta',
+      langName: 'Português (Brasil)', moveUp: 'Mover para antes', moveDown: 'Mover para depois', dragHint: 'Arraste para mover o painel · canto inferior direito para redimensionar', resetLayout: 'Restaurar posição, tamanho e ordem', dragSection: 'Arraste para reordenar · clique no nome para recolher', petLife: 'adulto aos {adult}, vive ~{life} anos', age: 'Idade', bornIn: 'nasceu no ano {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Família', pets: 'Mascotes', multipliers: 'Multiplicadores',
       cash: 'Dinheiro', influence: 'Influência', prestige: 'Prestígio',
       intelligence: 'Inteligência', stewardship: 'Administração', eloquence: 'Eloquência', combat: 'Combate',
@@ -83,7 +83,7 @@ const PANEL = String.raw`(() => {
       health: 'Saúde', fertility: 'Fertilidade', expenses: 'Despesas', stewardshipShort: 'Administração', xOfY: '{x} de {y}',
     },
     en: {
-      langName: 'English (US)', age: 'Age', bornIn: 'born in year {year}', hideHint: 'F8 hides',
+      langName: 'English (US)', moveUp: 'Move earlier', moveDown: 'Move later', dragHint: 'Drag to move the panel · bottom-right corner to resize', resetLayout: 'Reset position, size and order', dragSection: 'Drag to reorder · click the name to collapse', petLife: 'adult at {adult}, lives ~{life} yrs', age: 'Age', bornIn: 'born in year {year}', hideHint: 'F8 hides',
       resources: 'Resources', family: 'Family', pets: 'Pets', multipliers: 'Multipliers',
       cash: 'Money', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Stewardship', eloquence: 'Eloquence', combat: 'Combat',
@@ -110,7 +110,7 @@ const PANEL = String.raw`(() => {
       health: 'Health', fertility: 'Fertility', expenses: 'Expenses', stewardshipShort: 'Stewardship', xOfY: '{x} of {y}',
     },
     ru: {
-      langName: 'Русский', age: 'Возраст', bornIn: 'год рождения: {year}', hideHint: 'F8 — скрыть',
+      langName: 'Русский', moveUp: 'Переместить раньше', moveDown: 'Переместить позже', dragHint: 'Перетащите, чтобы переместить панель · правый нижний угол — изменить размер', resetLayout: 'Сбросить положение, размер и порядок', dragSection: 'Перетащите для смены порядка · нажмите на название, чтобы свернуть', petLife: 'взрослый в {adult}, живёт ~{life} лет', age: 'Возраст', bornIn: 'год рождения: {year}', hideHint: 'F8 — скрыть',
       resources: 'Ресурсы', family: 'Семья', pets: 'Питомцы', multipliers: 'Множители',
       cash: 'Деньги', influence: 'Влияние', prestige: 'Престиж',
       intelligence: 'Интеллект', stewardship: 'Управление', eloquence: 'Красноречие', combat: 'Бой',
@@ -137,7 +137,7 @@ const PANEL = String.raw`(() => {
       health: 'Здоровье', fertility: 'Плодовитость', expenses: 'Расходы', stewardshipShort: 'Управление', xOfY: '{x}: {y}',
     },
     fr: {
-      langName: 'Français', age: 'Âge', bornIn: "né en l'an {year}", hideHint: 'F8 masque',
+      langName: 'Français', moveUp: 'Déplacer avant', moveDown: 'Déplacer après', dragHint: 'Glisser pour déplacer le panneau · coin inférieur droit pour redimensionner', resetLayout: 'Réinitialiser position, taille et ordre', dragSection: 'Glisser pour réordonner · cliquer sur le nom pour replier', petLife: 'adulte à {adult} ans, vit ~{life} ans', age: 'Âge', bornIn: "né en l'an {year}", hideHint: 'F8 masque',
       resources: 'Ressources', family: 'Famille', pets: 'Animaux', multipliers: 'Multiplicateurs',
       cash: 'Argent', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Intendance', eloquence: 'Éloquence', combat: 'Combat',
@@ -164,7 +164,7 @@ const PANEL = String.raw`(() => {
       health: 'Santé', fertility: 'Fertilité', expenses: 'Dépenses', stewardshipShort: 'Intendance', xOfY: '{x} de {y}',
     },
     de: {
-      langName: 'Deutsch', age: 'Alter', bornIn: 'geboren im Jahr {year}', hideHint: 'F8 blendet aus',
+      langName: 'Deutsch', moveUp: 'Nach vorne', moveDown: 'Nach hinten', dragHint: 'Ziehen zum Verschieben · untere rechte Ecke zum Ändern der Größe', resetLayout: 'Position, Größe und Reihenfolge zurücksetzen', dragSection: 'Ziehen zum Umordnen · auf den Namen klicken zum Einklappen', petLife: 'erwachsen mit {adult}, lebt ~{life} Jahre', age: 'Alter', bornIn: 'geboren im Jahr {year}', hideHint: 'F8 blendet aus',
       resources: 'Ressourcen', family: 'Familie', pets: 'Haustiere', multipliers: 'Multiplikatoren',
       cash: 'Geld', influence: 'Einfluss', prestige: 'Prestige',
       intelligence: 'Intelligenz', stewardship: 'Verwaltung', eloquence: 'Redekunst', combat: 'Kampf',
@@ -280,25 +280,64 @@ const PANEL = String.raw`(() => {
   const CTRL_CSS = 'background:#3a2e20;color:#f3e6c8;border:1px solid #b08d57;border-radius:4px'
   const el = (tag, css, parent) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (parent) parent.appendChild(e); return e }
 
+  const DEFAULT_W = 360
+  const SECTION_IDS = ['resources', 'family', 'pets', 'multipliers']
+
   // Construye el panel entero en el idioma actual. Cambiar de idioma lo reconstruye.
   let refresh = () => {}
   function build() {
     document.getElementById('cor-trainer')?.remove()
-    const box = el('div', 'position:fixed;top:12px;right:12px;z-index:2147483647;background:rgba(20,16,12,.94);' +
+    window.__corTrainerRO?.disconnect()
+    // Posición y tamaño: el panel se puede arrastrar (desde el título) y
+    // redimensionar (esquina inferior derecha). Ambos se recuerdan.
+    const layout = ls.get('corTrainerLayout', {})
+    const box = el('div', 'position:fixed;z-index:2147483647;background:rgba(20,16,12,.94);box-sizing:border-box;' +
       'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;padding:10px 12px;border:1px solid #b08d57;' +
-      'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);width:360px;max-height:90vh;overflow:auto;user-select:none')
+      'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);min-width:280px;min-height:120px;' +
+      'overflow:auto;resize:both;user-select:none')
     box.id = 'cor-trainer'
     box.lang = lang
+    box.style.width = Math.min(layout.w || DEFAULT_W, innerWidth - 8) + 'px'
+    if (layout.h) box.style.height = Math.min(layout.h, innerHeight - 8) + 'px'
+    else box.style.maxHeight = '90vh'
+    const place = (x, y) => {
+      box.style.left = Math.round(Math.max(0, Math.min(x, innerWidth - 80))) + 'px'
+      box.style.top = Math.round(Math.max(0, Math.min(y, innerHeight - 40))) + 'px'
+    }
+    place(layout.x ?? innerWidth - parseInt(box.style.width) - 12, layout.y ?? 12)
+    let saveTimer
+    const saveLayout = () => {
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(() => box.offsetWidth > 0 && ls.set('corTrainerLayout', { // oculto (F8) = no guardar
+        x: box.offsetLeft, y: box.offsetTop, w: box.offsetWidth, h: box.style.height ? box.offsetHeight : undefined,
+      }), 250)
+    }
+    window.__corTrainerRO = new ResizeObserver(saveLayout)
+    window.__corTrainerRO.observe(box)
     // Que las teclas escritas en el panel no disparen atajos del juego (salvo F8).
     box.addEventListener('keydown', e => { if (e.key !== 'F8') e.stopPropagation() })
 
-    // Cabecera: título + banderas para cambiar el idioma.
+    // Cabecera: título (arrastrable) + botón de reinicio + banderas de idioma.
     const header = el('div', 'margin-bottom:6px', box)
-    const titleLine = el('div', 'display:flex;justify-content:space-between;align-items:baseline', header)
-    const title = el('span', 'font-weight:600;color:#e0c07a', titleLine)
-    title.textContent = 'Trainer'
+    const titleLine = el('div', 'display:flex;align-items:baseline;gap:8px;cursor:move', header)
+    titleLine.title = t('dragHint')
+    const title = el('span', 'font-weight:600;color:#e0c07a;flex:1', titleLine)
+    title.textContent = '⠿ Trainer'
     const hint = el('span', 'font-size:11px;opacity:.7', titleLine)
     hint.textContent = t('hideHint')
+    const reset = el('button', 'background:none;border:none;color:#e0c07a;cursor:pointer;padding:0 2px;font-size:14px', titleLine)
+    reset.textContent = '↺'
+    reset.title = t('resetLayout')
+    reset.onclick = () => { ls.set('corTrainerLayout', {}); ls.set('corTrainerOrder', null); build() }
+    titleLine.addEventListener('mousedown', e => {
+      if (e.button !== 0 || e.target.closest('button')) return
+      const dx = e.clientX - box.offsetLeft, dy = e.clientY - box.offsetTop
+      const move = ev => place(ev.clientX - dx, ev.clientY - dy)
+      const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); saveLayout() }
+      addEventListener('mousemove', move)
+      addEventListener('mouseup', up)
+      e.preventDefault()
+    })
     const flags = el('div', 'display:flex;gap:6px;margin-top:6px', header)
     for (const [code, svg] of FLAGS) {
       const active = code === lang
@@ -328,14 +367,50 @@ const PANEL = String.raw`(() => {
     const note = (parent, text) => { const n = el('div', 'font-size:11px;opacity:.7;margin-top:3px', parent); n.textContent = text; return n }
     const subheading = (parent, text) => { const h = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600', parent); h.textContent = text }
 
-    // Sección plegable: clic en el título para abrir/cerrar (se recuerda por sección, no por idioma).
+    // Secciones: tarjetas en una rejilla. Si el panel es ancho se reparten en
+    // varias columnas. Se pueden plegar (clic en el título) y reordenar
+    // (arrastrando la cabecera o con ▲▼). Plegado y orden se recuerdan.
+    const grid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));column-gap:18px;align-items:start', box)
     const collapsed = ls.get('corTrainerCollapsedV2', {})
+    const cards = {}
+    let order = (ls.get('corTrainerOrder', null) || []).filter(id => SECTION_IDS.includes(id))
+    order = order.concat(SECTION_IDS.filter(id => !order.includes(id)))
+    const applyOrder = () => order.forEach(id => cards[id] && grid.appendChild(cards[id]))
+    const moveSection = (id, to) => {
+      const from = order.indexOf(id)
+      if (from < 0 || to < 0 || to >= order.length || to === from) return
+      order.splice(from, 1)
+      order.splice(to, 0, id)
+      ls.set('corTrainerOrder', order)
+      applyOrder()
+    }
+    let dragging = null
     function section(id) {
-      const head = el('div', 'margin:8px 0 2px;padding-top:6px;border-top:1px solid #5a4630;color:#e0c07a;font-weight:600;cursor:pointer', box)
-      const body = el('div', '', box)
-      const paint = () => { head.textContent = (collapsed[id] ? '▸ ' : '▾ ') + t(id); body.style.display = collapsed[id] ? 'none' : '' }
-      head.onclick = () => { collapsed[id] = !collapsed[id]; ls.set('corTrainerCollapsedV2', collapsed); paint() }
+      const card = el('div', 'border-radius:6px;transition:background .1s', grid)
+      cards[id] = card
+      const head = el('div', 'display:flex;align-items:center;gap:4px;margin:8px 0 2px;padding-top:6px;border-top:1px solid #5a4630;color:#e0c07a;font-weight:600', card)
+      head.draggable = true
+      head.title = t('dragSection')
+      const grip = el('span', 'cursor:grab;opacity:.55;font-weight:400', head)
+      grip.textContent = '⠿'
+      const name = el('span', 'flex:1;cursor:pointer', head)
+      const arrow = (text, tip, delta) => {
+        const b = el('button', 'background:none;border:none;color:#e0c07a;cursor:pointer;padding:0 3px;font-size:10px;opacity:.7', head)
+        b.textContent = text
+        b.title = tip
+        b.onclick = e => { e.stopPropagation(); moveSection(id, order.indexOf(id) + delta) }
+      }
+      arrow('▲', t('moveUp'), -1)
+      arrow('▼', t('moveDown'), 1)
+      const body = el('div', '', card)
+      const paint = () => { name.textContent = (collapsed[id] ? '▸ ' : '▾ ') + t(id); body.style.display = collapsed[id] ? 'none' : '' }
+      name.onclick = () => { collapsed[id] = !collapsed[id]; ls.set('corTrainerCollapsedV2', collapsed); paint() }
       paint()
+      head.addEventListener('dragstart', e => { dragging = id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); card.style.opacity = '.5' })
+      head.addEventListener('dragend', () => { dragging = null; card.style.opacity = ''; Object.values(cards).forEach(c => { c.style.background = '' }) })
+      card.addEventListener('dragover', e => { if (dragging && dragging !== id) { e.preventDefault(); card.style.background = 'rgba(224,192,122,.12)' } })
+      card.addEventListener('dragleave', () => { card.style.background = '' })
+      card.addEventListener('drop', e => { e.preventDefault(); card.style.background = ''; if (dragging) moveSection(dragging, order.indexOf(id)) })
       return body
     }
 
@@ -442,23 +517,31 @@ const PANEL = String.raw`(() => {
     rosterSelect(pick, household, () => selectedId, v => { selectedId = v },
       ch => ch.praenomen + (ch.id === S().current.id ? ' ' + t('you') : ''), t('noFamily'))
     // Edad: el juego la calcula a partir de birthMonth/birthYear, así que cambiarla
-    // es mover el año de nacimiento (se conserva el mes).
-    const ageOf = ch => AGE ? AGE(S(), ch.birthMonth, ch.birthYear) : S().year - ch.birthYear
-    const setAge = v => {
-      const ch = selected()
-      if (!ch) return
-      const target = Math.max(0, Math.floor(v))
-      ch.birthYear += Math.floor(ageOf(ch)) - target
+    // es mover el año de nacimiento (se conserva el mes). Sirve para personajes y mascotas.
+    const ageOf = x => AGE ? AGE(S(), x.birthMonth, x.birthYear) : S().year - x.birthYear
+    const ageRow = (entity, parent, extraNote) => {
+      const years = () => Math.floor(ageOf(entity()))
+      const setAge = v => {
+        const x = entity()
+        if (!x) return
+        x.birthYear += Math.floor(ageOf(x)) - Math.max(0, Math.floor(v))
+      }
+      addRow({
+        label: t('age'),
+        get: () => entity() ? years() : undefined,
+        set: setAge,
+        enabled: () => !!entity(),
+        steps: [1, 5],
+        extra: [['−1', () => setAge(years() - 1)], ['−5', () => setAge(years() - 5)]],
+        suffix: () => {
+          const x = entity()
+          if (!x) return ''
+          const more = extraNote ? extraNote(x) : ''
+          return t('bornIn', { year: x.birthYear }) + (more ? ' · ' + more : '')
+        },
+      }, parent)
     }
-    addRow({
-      label: t('age'),
-      get: () => selected() ? Math.floor(ageOf(selected())) : undefined,
-      set: setAge,
-      enabled: () => !!selected(),
-      steps: [1, 5],
-      extra: [['−1', () => setAge(Math.floor(ageOf(selected())) - 1)], ['−5', () => setAge(Math.floor(ageOf(selected())) - 5)]],
-      suffix: () => selected() ? t('bornIn', { year: selected().birthYear }) : '',
-    }, secFam)
+    ageRow(selected, secFam)
 
     const SKILLS = ['intelligence', 'stewardship', 'eloquence', 'combat']
     SKILLS.forEach(key => addRow({
@@ -511,6 +594,10 @@ const PANEL = String.raw`(() => {
       return p.name + ' (' + (PETS?.types[p.type]?.breed || p.type) + (owner ? ', ' + t('petOwner', { owner }) : '') + ')'
     }
     rosterSelect(petPick, householdPets, () => selectedPetId, v => { selectedPetId = v }, petLabel, t('noPets'))
+    ageRow(selectedPet, secPets, p => {
+      const type = PETS?.types[p.type]
+      return type ? t('petLife', { adult: type.adultAge, life: type.lifeExpectancy }) : ''
+    })
     const PET_SKILLS = ['aptitude', 'vigor', 'tameness']
     PET_SKILLS.forEach(key => addRow({
       label: t(key), get: () => selectedPet()?.skills?.[key], set: v => { selectedPet().skills[key] = v },
@@ -613,6 +700,7 @@ const PANEL = String.raw`(() => {
     })
     note(secMods, t('legend'))
 
+    applyOrder()
     document.body.appendChild(box)
 
     // --- Refresco -------------------------------------------------------------
@@ -634,6 +722,17 @@ const PANEL = String.raw`(() => {
   }
 
   build()
+
+  // Si la ventana del juego se achica, que el panel no quede fuera de pantalla.
+  if (!window.__corTrainerResize) {
+    window.__corTrainerResize = true
+    addEventListener('resize', () => {
+      const p = document.getElementById('cor-trainer')
+      if (!p) return
+      p.style.left = Math.max(0, Math.min(p.offsetLeft, innerWidth - 80)) + 'px'
+      p.style.top = Math.max(0, Math.min(p.offsetTop, innerHeight - 40)) + 'px'
+    })
+  }
 
   if (!window.__corTrainerKeys) {
     window.__corTrainerKeys = true
