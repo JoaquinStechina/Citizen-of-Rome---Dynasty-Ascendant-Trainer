@@ -15,14 +15,17 @@
 // en un único script con un cargador mínimo tipo CommonJS: cada archivo de src/
 // es un módulo cuyo id es su ruta sin ".js" (p. ej. "core/ui"), y se usa con
 // require('core/ui') y module.exports. El punto de entrada es src/main.js.
+// Los textos están en locales/<idioma>.json y llegan al panel como el módulo "locales".
 
 import { readFileSync, readdirSync } from 'fs'
-import { dirname, join, relative } from 'path'
+import { dirname, join, relative, basename } from 'path'
 import { fileURLToPath } from 'url'
 
 const PORT = Number(process.env.CDP_PORT || 9222)
 const ROOT = dirname(fileURLToPath(import.meta.url))
 const SRC = join(ROOT, 'src')
+const LOCALES = join(ROOT, 'locales')
+const BASE_LANG = 'es' // idioma de referencia: los demás deben tener sus mismas claves
 
 // --- Empaquetado ----------------------------------------------------------------
 
@@ -34,9 +37,38 @@ function listModules(dir) {
   })
 }
 
+// Lee locales/*.json -> { es: {...}, en: {...}, ... }. Un JSON mal escrito es un
+// error con el nombre del archivo.
+function loadLocales() {
+  const out = {}
+  for (const name of readdirSync(LOCALES).filter(n => n.endsWith('.json')).sort()) {
+    try { out[basename(name, '.json')] = JSON.parse(readFileSync(join(LOCALES, name), 'utf8')) } catch (e) {
+      throw new Error(`locales/${name}: ${e.message}`)
+    }
+  }
+  if (!out[BASE_LANG]) throw new Error(`falta locales/${BASE_LANG}.json`)
+  return out
+}
+
+// Avisos (no errores) si un idioma no tiene las mismas claves que el de referencia.
+// Una clave que falta se muestra en español en el panel.
+function localeWarnings(locales) {
+  const base = Object.keys(locales[BASE_LANG])
+  const warnings = []
+  for (const [lang, texts] of Object.entries(locales)) {
+    const keys = Object.keys(texts)
+    const missing = base.filter(k => !keys.includes(k)), extra = keys.filter(k => !base.includes(k))
+    if (missing.length) warnings.push(`locales/${lang}.json: faltan ${missing.join(', ')}`)
+    if (extra.length) warnings.push(`locales/${lang}.json: sobran ${extra.join(', ')}`)
+  }
+  return warnings
+}
+
 // Devuelve el script a inyectar: define cada módulo y ejecuta require('main').
 function bundle() {
   const files = listModules(SRC).sort()
+  const locales = loadLocales()
+  for (const w of localeWarnings(locales)) console.warn('Aviso:', w)
   let out = '(() => {\n' +
     'const __mods = {}, __cache = {}\n' +
     'const __def = (id, fn) => { __mods[id] = fn }\n' +
@@ -47,7 +79,8 @@ function bundle() {
     '  __cache[id] = module\n' +
     '  __mods[id](require, module, module.exports)\n' +
     '  return module.exports\n' +
-    '}\n'
+    '}\n' +
+    '__def("locales", function (require, module) { module.exports = ' + JSON.stringify(locales) + ' })\n'
   for (const file of files) {
     const id = relative(SRC, file).replace(/\\/g, '/').replace(/\.js$/, '')
     out += '__def(' + JSON.stringify(id) + ', function (require, module, exports) {\n' + readFileSync(file, 'utf8') + '\n})\n'
@@ -59,7 +92,8 @@ function bundle() {
 function check() {
   const code = bundle()
   new Function(code)
-  console.log(`OK: ${listModules(SRC).length} módulos, ${(code.length / 1024).toFixed(1)} KB.`)
+  const locales = loadLocales()
+  console.log(`OK: ${listModules(SRC).length} módulos, ${Object.keys(locales).length} idiomas (${Object.keys(locales).join(', ')}), ${(code.length / 1024).toFixed(1)} KB.`)
 }
 
 // --- Conexión con el juego --------------------------------------------------------
@@ -114,7 +148,9 @@ async function inject(send) {
 }
 
 async function main() {
-  if (process.argv.includes('--check')) return check()
+  if (process.argv.includes('--check')) {
+    try { return check() } catch (e) { console.error('Error:', e.message); process.exit(1) }
+  }
 
   let page
   try {
@@ -130,14 +166,19 @@ async function main() {
   await opened
   await send('Page.enable')
 
+  // Un error en src/ o locales/ se informa sin cerrar el trainer.
+  const tryInject = async () => {
+    try { return await inject(send) } catch (e) { console.error('Error al inyectar el panel:', e.message); return false }
+  }
+
   on(async msg => {
     if (msg.method === 'Page.loadEventFired') {
       console.log('El juego recargó la página, reinyectando panel...')
-      if (await inject(send)) console.log('Panel listo (F8).')
+      if (await tryInject()) console.log('Panel listo (F8).')
     }
   })
 
-  if (await inject(send)) console.log('Panel listo. Pulsa F8 dentro del juego para mostrarlo u ocultarlo.')
+  if (await tryInject()) console.log('Panel listo. Pulsa F8 dentro del juego para mostrarlo u ocultarlo.')
   else console.log('El juego aún no tiene una partida cargada; el panel aparecerá al recargar.')
 
   ws.onclose = () => { console.log('El juego se cerró. Saliendo.'); process.exit(0) }

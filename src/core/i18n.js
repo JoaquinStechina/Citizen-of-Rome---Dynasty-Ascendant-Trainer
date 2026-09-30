@@ -1,4 +1,5 @@
-// Traducciones del panel. Los textos vienen del módulo "locales", uno por idioma.
+// Traducciones del panel. Los textos están en locales/<idioma>.json; el host los
+// inyecta como el módulo "locales" ({ es: {...}, en: {...}, ... }).
 // Los nombres de rasgos, trabajos y propiedades vienen del juego (solo trae inglés).
 const ls = require('core/storage')
 const LOCALES = require('locales')
