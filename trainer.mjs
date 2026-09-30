@@ -29,7 +29,7 @@ const PANEL = String.raw`(() => {
   // Los nombres de rasgos, trabajos y propiedades vienen del juego (solo trae inglés).
   const I18N = {
     es: {
-      langName: 'Español (Argentina)', hideHint: 'F8 oculta',
+      langName: 'Español (Argentina)', age: 'Edad', bornIn: 'nació en el año {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Familia', pets: 'Mascotas', multipliers: 'Multiplicadores',
       cash: 'Dinero', influence: 'Influencia', prestige: 'Prestigio',
       intelligence: 'Inteligencia', stewardship: 'Administración', eloquence: 'Elocuencia', combat: 'Combate',
@@ -56,7 +56,7 @@ const PANEL = String.raw`(() => {
       health: 'Salud', fertility: 'Fertilidad', expenses: 'Gastos', stewardshipShort: 'Administración', xOfY: '{x} de {y}',
     },
     pt: {
-      langName: 'Português (Brasil)', hideHint: 'F8 oculta',
+      langName: 'Português (Brasil)', age: 'Idade', bornIn: 'nasceu no ano {year}', hideHint: 'F8 oculta',
       resources: 'Recursos', family: 'Família', pets: 'Mascotes', multipliers: 'Multiplicadores',
       cash: 'Dinheiro', influence: 'Influência', prestige: 'Prestígio',
       intelligence: 'Inteligência', stewardship: 'Administração', eloquence: 'Eloquência', combat: 'Combate',
@@ -83,7 +83,7 @@ const PANEL = String.raw`(() => {
       health: 'Saúde', fertility: 'Fertilidade', expenses: 'Despesas', stewardshipShort: 'Administração', xOfY: '{x} de {y}',
     },
     en: {
-      langName: 'English (US)', hideHint: 'F8 hides',
+      langName: 'English (US)', age: 'Age', bornIn: 'born in year {year}', hideHint: 'F8 hides',
       resources: 'Resources', family: 'Family', pets: 'Pets', multipliers: 'Multipliers',
       cash: 'Money', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Stewardship', eloquence: 'Eloquence', combat: 'Combat',
@@ -110,7 +110,7 @@ const PANEL = String.raw`(() => {
       health: 'Health', fertility: 'Fertility', expenses: 'Expenses', stewardshipShort: 'Stewardship', xOfY: '{x} of {y}',
     },
     ru: {
-      langName: 'Русский', hideHint: 'F8 — скрыть',
+      langName: 'Русский', age: 'Возраст', bornIn: 'год рождения: {year}', hideHint: 'F8 — скрыть',
       resources: 'Ресурсы', family: 'Семья', pets: 'Питомцы', multipliers: 'Множители',
       cash: 'Деньги', influence: 'Влияние', prestige: 'Престиж',
       intelligence: 'Интеллект', stewardship: 'Управление', eloquence: 'Красноречие', combat: 'Бой',
@@ -137,7 +137,7 @@ const PANEL = String.raw`(() => {
       health: 'Здоровье', fertility: 'Плодовитость', expenses: 'Расходы', stewardshipShort: 'Управление', xOfY: '{x}: {y}',
     },
     fr: {
-      langName: 'Français', hideHint: 'F8 masque',
+      langName: 'Français', age: 'Âge', bornIn: "né en l'an {year}", hideHint: 'F8 masque',
       resources: 'Ressources', family: 'Famille', pets: 'Animaux', multipliers: 'Multiplicateurs',
       cash: 'Argent', influence: 'Influence', prestige: 'Prestige',
       intelligence: 'Intelligence', stewardship: 'Intendance', eloquence: 'Éloquence', combat: 'Combat',
@@ -164,7 +164,7 @@ const PANEL = String.raw`(() => {
       health: 'Santé', fertility: 'Fertilité', expenses: 'Dépenses', stewardshipShort: 'Intendance', xOfY: '{x} de {y}',
     },
     de: {
-      langName: 'Deutsch', hideHint: 'F8 blendet aus',
+      langName: 'Deutsch', age: 'Alter', bornIn: 'geboren im Jahr {year}', hideHint: 'F8 blendet aus',
       resources: 'Ressourcen', family: 'Familie', pets: 'Haustiere', multipliers: 'Multiplikatoren',
       cash: 'Geld', influence: 'Einfluss', prestige: 'Prestige',
       intelligence: 'Intelligenz', stewardship: 'Verwaltung', eloquence: 'Redekunst', combat: 'Kampf',
@@ -237,6 +237,7 @@ const PANEL = String.raw`(() => {
     return { list: defs.list, titles: req('7073').default(), discoverable: defs.discoverable || [],
       add: (ch, id) => req('a822').a(S(), ch.id, id), remove: (ch, id) => req('cc6f').a(S(), ch.id, id, true) }
   })
+  const AGE = load('edad', req => req('9b55').default)
   const JOBS = load('trabajos', req => ({ types: req('0262').default.types, titles: req('c9c8').default.titles || {}, set: req('6cf7').a }))
   const PETS = load('mascotas', req => {
     const P = req('ed26').a
@@ -440,6 +441,25 @@ const PANEL = String.raw`(() => {
     const pick = select(secFam, v => { selectedId = v })
     rosterSelect(pick, household, () => selectedId, v => { selectedId = v },
       ch => ch.praenomen + (ch.id === S().current.id ? ' ' + t('you') : ''), t('noFamily'))
+    // Edad: el juego la calcula a partir de birthMonth/birthYear, así que cambiarla
+    // es mover el año de nacimiento (se conserva el mes).
+    const ageOf = ch => AGE ? AGE(S(), ch.birthMonth, ch.birthYear) : S().year - ch.birthYear
+    const setAge = v => {
+      const ch = selected()
+      if (!ch) return
+      const target = Math.max(0, Math.floor(v))
+      ch.birthYear += Math.floor(ageOf(ch)) - target
+    }
+    addRow({
+      label: t('age'),
+      get: () => selected() ? Math.floor(ageOf(selected())) : undefined,
+      set: setAge,
+      enabled: () => !!selected(),
+      steps: [1, 5],
+      extra: [['−1', () => setAge(Math.floor(ageOf(selected())) - 1)], ['−5', () => setAge(Math.floor(ageOf(selected())) - 5)]],
+      suffix: () => selected() ? t('bornIn', { year: selected().birthYear }) : '',
+    }, secFam)
+
     const SKILLS = ['intelligence', 'stewardship', 'eloquence', 'combat']
     SKILLS.forEach(key => addRow({
       label: t(key), get: () => selected()?.skills?.[key], set: v => { selected().skills[key] = v }, steps: [1, 5],
