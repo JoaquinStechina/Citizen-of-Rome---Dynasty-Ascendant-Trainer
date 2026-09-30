@@ -38,6 +38,15 @@ const PANEL = String.raw`(() => {
     const defs = req('50ab').default()
     TR = { defs, titles: req('7073').default(), add: req('a822').a, remove: req('cc6f').a, discoverable: defs.discoverable || [] }
   } catch (e) { console.warn('[trainer] rasgos no disponibles', e) }
+  // Trabajos: definiciones (maxLevel por trabajo), nombres y la función del juego
+  // que fija el nivel (lo limita a [0, maxLevel] y recalcula al personaje).
+  let JOBS = null
+  try {
+    const req = gameRequire()
+    JOBS = { types: req('0262').default.types, titles: req('c9c8').default.titles || {}, set: req('6cf7').a }
+  } catch (e) { console.warn('[trainer] trabajos no disponibles', e) }
+  let PET_TYPES = {}
+  try { PET_TYPES = gameRequire()('ed26').a.types || {} } catch (e) { console.warn('[trainer] tipos de mascota no disponibles', e) }
   const GROUPS = {
     education: 'Educación', personality: 'Personalidad', good: 'Buenos', bad: 'Malos',
     goodGenetic: 'Genética buena', badGenetic: 'Genética mala', neutralGenetic: 'Genética neutral',
@@ -65,6 +74,44 @@ const PANEL = String.raw`(() => {
     label, get: () => selected()?.skills?.[key], set: v => { selected().skills[key] = v }, steps: [1, 5],
   }))
   const SKILL_MAX = 30 // a partir de ~27 las fórmulas del juego ya dan el máximo (99%)
+
+  const jobMax = () => { const ch = selected(); return (ch?.job && JOBS?.types[ch.job]?.maxLevel) || 0 }
+  const setJobLevel = v => {
+    const ch = selected()
+    if (!ch?.job) return
+    if (JOBS) JOBS.set(S(), { characterId: ch.id, jobLevel: v })
+    else ch.jobLevel = Math.max(0, v)
+  }
+  const jobCheat = {
+    label: 'Nivel trabajo',
+    get: () => selected()?.job ? selected().jobLevel : undefined,
+    set: setJobLevel,
+    enabled: () => !!selected()?.job,
+    steps: [1, 5],
+    extra: [['Máx', () => setJobLevel(jobMax()), 'Sube al nivel máximo de este trabajo']],
+    suffix: () => {
+      const ch = selected()
+      if (!ch?.job) return 'sin trabajo'
+      return (JOBS?.titles[ch.job] || ch.job) + ' · máx ' + jobMax()
+    },
+  }
+
+  // Mascotas: las del jugador, las de la casa y las de cada miembro de la familia.
+  let selectedPetId = null
+  const pets = () => S()?.current?.pets || {}
+  const selectedPet = () => pets()[selectedPetId]
+  const householdPets = () => {
+    const s = S()
+    if (!s) return []
+    const ids = [...(s.current.petIds || []), ...(s.current.householdPetIds || [])]
+    household().forEach(ch => ids.push(...(ch.petIds || [])))
+    return [...new Set(ids)].map(id => pets()[id]).filter(p => p && !p.isDead)
+  }
+  const PET_SKILLS = { aptitude: 'Aptitud', vigor: 'Vigor', tameness: 'Docilidad' }
+  const petCheats = Object.entries(PET_SKILLS).map(([key, label]) => ({
+    label, get: () => selectedPet()?.skills?.[key], set: v => { selectedPet().skills[key] = v },
+    enabled: () => !!selectedPet(), steps: [1, 5],
+  }))
 
   document.getElementById('cor-trainer')?.remove()
   const box = document.createElement('div')
@@ -95,8 +142,9 @@ const PANEL = String.raw`(() => {
   }
 
   // Fila: etiqueta, campo editable (Enter o salir del campo = aplicar) y botones +N.
+  // Opcionales: c.enabled() desactiva la fila, c.extra añade botones, c.suffix() una nota debajo.
   const rows = []
-  function addRow(c) {
+  function addRow(c, parent = box) {
     const row = document.createElement('div')
     row.style.cssText = 'display:flex;align-items:center;gap:4px;margin:4px 0'
     const label = document.createElement('span')
@@ -115,24 +163,32 @@ const PANEL = String.raw`(() => {
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { input.blur() } else if (e.key === 'Escape') { input.value = fmt(c.get()); input.blur() } })
     row.append(label, input)
     const short = n => n >= 1000 ? (n / 1000) + 'k' : String(n)
-    for (const n of c.steps) button(row, '+' + short(n), () => c.set((c.get() || 0) + n))
-    rows.push({ c, input })
-    box.appendChild(row)
+    const btns = c.steps.map(n => button(row, '+' + short(n), () => c.set((c.get() || 0) + n)))
+    for (const [text, fn, title] of c.extra || []) btns.push(button(row, text, fn, title))
+    parent.appendChild(row)
+    let note = null
+    if (c.suffix) {
+      note = document.createElement('div')
+      note.style.cssText = 'font-size:11px;opacity:.7;text-align:right;margin:-3px 0 4px'
+      parent.appendChild(note)
+    }
+    rows.push({ c, input, btns, note })
   }
 
-  cheats.forEach(addRow)
+  cheats.forEach(c => addRow(c))
 
   heading('Familia')
   const pick = document.createElement('select')
   pick.style.cssText = CTRL_CSS + ';width:100%;padding:2px;margin:2px 0'
   pick.onchange = () => { selectedId = pick.value; lastTraitSig = ''; refresh() }
   box.appendChild(pick)
-  skillCheats.forEach(addRow)
+  skillCheats.forEach(c => addRow(c))
   const bulk = document.createElement('div')
   bulk.style.cssText = 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px'
   button(bulk, 'Todo a ' + SKILL_MAX, () => { for (const k in SKILLS) selected().skills[k] = SKILL_MAX })
   button(bulk, 'Toda la familia a ' + SKILL_MAX, () => household().forEach(ch => { for (const k in SKILLS) ch.skills[k] = SKILL_MAX }))
   box.appendChild(bulk)
+  addRow(jobCheat)
 
   // Rasgos del personaje elegido.
   const traitBox = document.createElement('div')
@@ -207,7 +263,40 @@ const PANEL = String.raw`(() => {
     if (prev && !owned.includes(prev)) traitPick.value = prev
   }
 
+  // Mascotas.
+  heading('Mascotas')
+  const petPick = document.createElement('select')
+  petPick.style.cssText = CTRL_CSS + ';width:100%;padding:2px;margin:2px 0'
+  petPick.onchange = () => { selectedPetId = petPick.value; refresh() }
+  box.appendChild(petPick)
+  petCheats.forEach(c => addRow(c))
+  const petBulk = document.createElement('div')
+  petBulk.style.cssText = 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px'
+  button(petBulk, 'Todo a ' + SKILL_MAX, () => { const p = selectedPet(); if (p) for (const k in PET_SKILLS) p.skills[k] = SKILL_MAX })
+  button(petBulk, 'Todas las mascotas a ' + SKILL_MAX, () => householdPets().forEach(p => { for (const k in PET_SKILLS) p.skills[k] = SKILL_MAX }))
+  box.appendChild(petBulk)
+
   document.body.appendChild(box)
+
+  let lastPetRoster = ''
+  function refreshPets() {
+    const list = householdPets()
+    const roster = list.map(p => p.id + p.name).join('|')
+    if (roster === lastPetRoster) return
+    lastPetRoster = roster
+    if (!list.some(p => p.id === selectedPetId)) selectedPetId = list[0]?.id ?? null
+    petPick.innerHTML = ''
+    if (!list.length) petPick.innerHTML = '<option value="">Sin mascotas</option>'
+    for (const p of list) {
+      const o = document.createElement('option')
+      o.value = p.id
+      const owner = S().characters[p.ownerId]?.praenomen
+      const breed = PET_TYPES[p.type]?.breed || p.type
+      o.textContent = p.name + ' (' + breed + (owner ? ', de ' + owner : '') + ')'
+      petPick.appendChild(o)
+    }
+    petPick.value = selectedPetId ?? ''
+  }
 
   let lastRoster = ''
   function refreshRoster() {
@@ -228,7 +317,12 @@ const PANEL = String.raw`(() => {
 
   function refresh() {
     try { refreshRoster() } catch {}
-    for (const { c, input } of rows) {
+    try { refreshPets() } catch {}
+    for (const { c, input, btns, note } of rows) {
+      let on = true; try { on = c.enabled ? c.enabled() : true } catch { on = false }
+      input.disabled = !on
+      btns.forEach(b => { b.disabled = !on; b.style.opacity = on ? '' : '.4' })
+      if (note) { try { note.textContent = c.suffix() } catch {} }
       if (document.activeElement === input) continue // no pisar lo que estás escribiendo
       let v; try { v = c.get() } catch {}
       input.value = fmt(v)
