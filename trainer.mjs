@@ -298,15 +298,22 @@ const PANEL = String.raw`(() => {
     // "box" es el contenido con scroll.
     const layout = ls.get('corTrainerLayout', {})
     const frame = el('div', 'position:fixed;z-index:2147483647;background:rgba(20,16,12,.94);box-sizing:border-box;' +
-      'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;border:1px solid #b08d57;display:flex;flex-direction:column;' +
+      'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;border:1px solid #b08d57;' +
       'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);user-select:none')
     frame.id = 'cor-trainer'
     frame.lang = lang
-    const box = el('div', 'padding:10px 12px;overflow:auto;flex:1 1 auto;min-height:0', frame)
+    // Ojo: el alto del contenido se limita con height/max-height propios y no con
+    // flexbox, porque F8 alterna frame.style.display ('' <-> 'none') y perdería el flex.
+    const box = el('div', 'padding:10px 12px;overflow:auto;box-sizing:border-box', frame)
+    const sizeInner = () => {
+      if (frame.style.height) { box.style.height = '100%'; box.style.maxHeight = 'none' }
+      else { box.style.height = ''; box.style.maxHeight = 'calc(90vh - 2px)' }
+    }
     const MIN_W = 280, MIN_H = 120
     frame.style.width = Math.min(layout.w || DEFAULT_W, innerWidth - 8) + 'px'
     if (layout.h) frame.style.height = Math.min(layout.h, innerHeight - 8) + 'px'
     else frame.style.maxHeight = '90vh'
+    sizeInner()
     const place = (x, y) => {
       frame.style.left = Math.round(Math.max(0, Math.min(x, innerWidth - 80))) + 'px'
       frame.style.top = Math.round(Math.max(0, Math.min(y, innerHeight - 40))) + 'px'
@@ -354,7 +361,7 @@ const PANEL = String.raw`(() => {
           frame.style.left = x + 'px'
           frame.style.top = y + 'px'
           frame.style.width = w + 'px'
-          if (dir.includes('n') || dir.includes('s')) { frame.style.height = hh + 'px'; frame.style.maxHeight = 'none' }
+          if (dir.includes('n') || dir.includes('s')) { frame.style.height = hh + 'px'; frame.style.maxHeight = 'none'; sizeInner() }
         }
         const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); document.body.style.cursor = ''; saveLayout() }
         document.body.style.cursor = getComputedStyle(h).cursor
