@@ -20,6 +20,204 @@ const PANEL = String.raw`(() => {
   const S = () => store()?.state
   const player = () => { const s = S(); return s?.characters?.[s.current.id] }
   const dynasty = () => { const s = S(), p = player(); return p && s.dynasties?.[p.dynastyId] }
+  const ls = {
+    get: (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v) } catch { return d } },
+    set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} },
+  }
+
+  // --- Idiomas ---------------------------------------------------------------
+  // Los nombres de rasgos, trabajos y propiedades vienen del juego (solo trae inglés).
+  const I18N = {
+    es: {
+      langName: 'Español (Argentina)', hideHint: 'F8 oculta',
+      resources: 'Recursos', family: 'Familia', pets: 'Mascotas', multipliers: 'Multiplicadores',
+      cash: 'Dinero', influence: 'Influencia', prestige: 'Prestigio',
+      intelligence: 'Inteligencia', stewardship: 'Administración', eloquence: 'Elocuencia', combat: 'Combate',
+      allTo: 'Todo a', familyAllTo: 'Toda la familia a', petsAllTo: 'Todas a',
+      jobLevel: 'Nivel trabajo', max: 'Máx', maxTip: 'Sube al nivel máximo de este trabajo', noJob: 'sin trabajo', maxShort: 'máx',
+      traits: 'Rasgos', petTraits: 'Rasgos de la mascota', add: 'Añadir',
+      addTip: 'Usa la función del juego: suma los bonus del rasgo y quita sus opuestos',
+      traitNote: 'Añadir/quitar un rasgo también suma/resta sus bonus de habilidad. Los opuestos se quitan solos.',
+      notAvailable: 'No disponible en esta versión del juego.', noTraits: 'Sin rasgos', removeTrait: 'Quitar rasgo',
+      you: '(vos)', noFamily: 'Sin familia', noPets: 'Sin mascotas', petOwner: 'de {owner}',
+      aptitude: 'Aptitud', vigor: 'Vigor', tameness: 'Docilidad',
+      g_education: 'Educación', g_personality: 'Personalidad', g_good: 'Buenos', g_bad: 'Malos', g_goodGenetic: 'Genética buena',
+      g_badGenetic: 'Genética mala', g_neutralGenetic: 'Genética neutral', g_skill: 'Habilidad', g_militaryHonor: 'Honores militares', g_neutral: 'Neutrales / cargos',
+      household: 'Casa', householdHealth: 'Salud de la casa', revenue: 'Ingresos', householdFertility: 'Fertilidad de la casa',
+      householdExpenses: 'Gastos de la casa', householdStewardship: 'Administración de la casa',
+      personal: 'Personal', personalHealth: 'Salud personal', personalFertility: 'Fertilidad personal',
+      personalExpenses: 'Gastos personales', personalStewardship: 'Administración personal',
+      petGroup: 'Mascota', petHealth: 'Salud de la mascota', petFertility: 'Fertilidad de la mascota', petExpenses: 'Gastos de la mascota',
+      jobs: 'Trabajos', jobPrefix: 'Trabajo', properties: 'Propiedades', propPrefix: 'Propiedad',
+      trainerFactor: 'Factor trainer', removeFactor: 'Quitar', removeFactorTip: 'Quita el factor del trainer', total: 'Total en juego',
+      modNote: 'Se multiplica con los del juego. En "Gastos" conviene un factor menor que 1 (p. ej. 0.5 = mitad de gastos).',
+      activeNow: 'Activos ahora', none: 'Ninguno', clickToEdit: 'Clic para editarlo arriba', removeAll: 'Quitar todos los del trainer',
+      legend: '★ = incluye un factor del trainer. Verde = te favorece.',
+      health: 'Salud', fertility: 'Fertilidad', expenses: 'Gastos', stewardshipShort: 'Administración', xOfY: '{x} de {y}',
+    },
+    pt: {
+      langName: 'Português (Brasil)', hideHint: 'F8 oculta',
+      resources: 'Recursos', family: 'Família', pets: 'Mascotes', multipliers: 'Multiplicadores',
+      cash: 'Dinheiro', influence: 'Influência', prestige: 'Prestígio',
+      intelligence: 'Inteligência', stewardship: 'Administração', eloquence: 'Eloquência', combat: 'Combate',
+      allTo: 'Tudo em', familyAllTo: 'Família toda em', petsAllTo: 'Todos em',
+      jobLevel: 'Nível trabalho', max: 'Máx', maxTip: 'Sobe para o nível máximo deste trabalho', noJob: 'sem trabalho', maxShort: 'máx',
+      traits: 'Traços', petTraits: 'Traços do mascote', add: 'Adicionar',
+      addTip: 'Usa a função do jogo: soma os bônus do traço e remove os opostos',
+      traitNote: 'Adicionar/remover um traço também soma/subtrai seus bônus de habilidade. Os opostos são removidos sozinhos.',
+      notAvailable: 'Indisponível nesta versão do jogo.', noTraits: 'Sem traços', removeTrait: 'Remover traço',
+      you: '(você)', noFamily: 'Sem família', noPets: 'Sem mascotes', petOwner: 'de {owner}',
+      aptitude: 'Aptidão', vigor: 'Vigor', tameness: 'Docilidade',
+      g_education: 'Educação', g_personality: 'Personalidade', g_good: 'Bons', g_bad: 'Ruins', g_goodGenetic: 'Genética boa',
+      g_badGenetic: 'Genética ruim', g_neutralGenetic: 'Genética neutra', g_skill: 'Habilidade', g_militaryHonor: 'Honras militares', g_neutral: 'Neutros / cargos',
+      household: 'Casa', householdHealth: 'Saúde da casa', revenue: 'Renda', householdFertility: 'Fertilidade da casa',
+      householdExpenses: 'Despesas da casa', householdStewardship: 'Administração da casa',
+      personal: 'Pessoal', personalHealth: 'Saúde pessoal', personalFertility: 'Fertilidade pessoal',
+      personalExpenses: 'Despesas pessoais', personalStewardship: 'Administração pessoal',
+      petGroup: 'Mascote', petHealth: 'Saúde do mascote', petFertility: 'Fertilidade do mascote', petExpenses: 'Despesas do mascote',
+      jobs: 'Trabalhos', jobPrefix: 'Trabalho', properties: 'Propriedades', propPrefix: 'Propriedade',
+      trainerFactor: 'Fator trainer', removeFactor: 'Remover', removeFactorTip: 'Remove o fator do trainer', total: 'Total no jogo',
+      modNote: 'Multiplica-se com os do jogo. Em "Despesas" convém um fator menor que 1 (ex.: 0.5 = metade das despesas).',
+      activeNow: 'Ativos agora', none: 'Nenhum', clickToEdit: 'Clique para editar acima', removeAll: 'Remover todos do trainer',
+      legend: '★ = inclui um fator do trainer. Verde = te favorece.',
+      health: 'Saúde', fertility: 'Fertilidade', expenses: 'Despesas', stewardshipShort: 'Administração', xOfY: '{x} de {y}',
+    },
+    en: {
+      langName: 'English (US)', hideHint: 'F8 hides',
+      resources: 'Resources', family: 'Family', pets: 'Pets', multipliers: 'Multipliers',
+      cash: 'Money', influence: 'Influence', prestige: 'Prestige',
+      intelligence: 'Intelligence', stewardship: 'Stewardship', eloquence: 'Eloquence', combat: 'Combat',
+      allTo: 'All to', familyAllTo: 'Whole family to', petsAllTo: 'All pets to',
+      jobLevel: 'Job level', max: 'Max', maxTip: "Raise to this job's max level", noJob: 'no job', maxShort: 'max',
+      traits: 'Traits', petTraits: 'Pet traits', add: 'Add',
+      addTip: "Uses the game's own function: applies the trait's bonuses and removes opposites",
+      traitNote: 'Adding/removing a trait also adds/subtracts its skill bonuses. Opposite traits are removed automatically.',
+      notAvailable: 'Not available in this game version.', noTraits: 'No traits', removeTrait: 'Remove trait',
+      you: '(you)', noFamily: 'No family', noPets: 'No pets', petOwner: "{owner}'s",
+      aptitude: 'Aptitude', vigor: 'Vigor', tameness: 'Tameness',
+      g_education: 'Education', g_personality: 'Personality', g_good: 'Good', g_bad: 'Bad', g_goodGenetic: 'Good genetic',
+      g_badGenetic: 'Bad genetic', g_neutralGenetic: 'Neutral genetic', g_skill: 'Skill', g_militaryHonor: 'Military honors', g_neutral: 'Neutral / offices',
+      household: 'Household', householdHealth: 'Household health', revenue: 'Revenue', householdFertility: 'Household fertility',
+      householdExpenses: 'Household expenses', householdStewardship: 'Household stewardship',
+      personal: 'Personal', personalHealth: 'Personal health', personalFertility: 'Personal fertility',
+      personalExpenses: 'Personal expenses', personalStewardship: 'Personal stewardship',
+      petGroup: 'Pet', petHealth: 'Pet health', petFertility: 'Pet fertility', petExpenses: 'Pet expenses',
+      jobs: 'Jobs', jobPrefix: 'Job', properties: 'Properties', propPrefix: 'Property',
+      trainerFactor: 'Trainer factor', removeFactor: 'Remove', removeFactorTip: 'Removes the trainer factor', total: 'In-game total',
+      modNote: 'Multiplies with the game\'s own. For "Expenses" use a factor below 1 (e.g. 0.5 = half the expenses).',
+      activeNow: 'Active now', none: 'None', clickToEdit: 'Click to edit above', removeAll: 'Remove all trainer factors',
+      legend: '★ = includes a trainer factor. Green = in your favor.',
+      health: 'Health', fertility: 'Fertility', expenses: 'Expenses', stewardshipShort: 'Stewardship', xOfY: '{x} of {y}',
+    },
+    ru: {
+      langName: 'Русский', hideHint: 'F8 — скрыть',
+      resources: 'Ресурсы', family: 'Семья', pets: 'Питомцы', multipliers: 'Множители',
+      cash: 'Деньги', influence: 'Влияние', prestige: 'Престиж',
+      intelligence: 'Интеллект', stewardship: 'Управление', eloquence: 'Красноречие', combat: 'Бой',
+      allTo: 'Всё на', familyAllTo: 'Вся семья на', petsAllTo: 'Все на',
+      jobLevel: 'Уровень работы', max: 'Макс', maxTip: 'Поднять до максимального уровня этой работы', noJob: 'без работы', maxShort: 'макс',
+      traits: 'Черты', petTraits: 'Черты питомца', add: 'Добавить',
+      addTip: 'Использует функцию игры: применяет бонусы черты и убирает противоположные',
+      traitNote: 'Добавление/удаление черты также прибавляет/вычитает её бонусы к навыкам. Противоположные черты убираются автоматически.',
+      notAvailable: 'Недоступно в этой версии игры.', noTraits: 'Нет черт', removeTrait: 'Убрать черту',
+      you: '(вы)', noFamily: 'Нет семьи', noPets: 'Нет питомцев', petOwner: 'хозяин: {owner}',
+      aptitude: 'Способности', vigor: 'Сила', tameness: 'Покладистость',
+      g_education: 'Образование', g_personality: 'Характер', g_good: 'Хорошие', g_bad: 'Плохие', g_goodGenetic: 'Хорошая генетика',
+      g_badGenetic: 'Плохая генетика', g_neutralGenetic: 'Нейтральная генетика', g_skill: 'Навыки', g_militaryHonor: 'Воинские награды', g_neutral: 'Нейтральные / должности',
+      household: 'Дом', householdHealth: 'Здоровье семьи', revenue: 'Доход', householdFertility: 'Плодовитость семьи',
+      householdExpenses: 'Расходы семьи', householdStewardship: 'Управление домом',
+      personal: 'Личное', personalHealth: 'Личное здоровье', personalFertility: 'Личная плодовитость',
+      personalExpenses: 'Личные расходы', personalStewardship: 'Личное управление',
+      petGroup: 'Питомец', petHealth: 'Здоровье питомца', petFertility: 'Плодовитость питомца', petExpenses: 'Расходы на питомца',
+      jobs: 'Работы', jobPrefix: 'Работа', properties: 'Имущество', propPrefix: 'Имущество',
+      trainerFactor: 'Множитель трейнера', removeFactor: 'Убрать', removeFactorTip: 'Убирает множитель трейнера', total: 'Итого в игре',
+      modNote: 'Перемножается с игровыми. Для «Расходов» лучше множитель меньше 1 (напр. 0.5 = вдвое меньше расходов).',
+      activeNow: 'Активные сейчас', none: 'Нет', clickToEdit: 'Нажмите, чтобы изменить выше', removeAll: 'Убрать все множители трейнера',
+      legend: '★ = есть множитель трейнера. Зелёный = в вашу пользу.',
+      health: 'Здоровье', fertility: 'Плодовитость', expenses: 'Расходы', stewardshipShort: 'Управление', xOfY: '{x}: {y}',
+    },
+    fr: {
+      langName: 'Français', hideHint: 'F8 masque',
+      resources: 'Ressources', family: 'Famille', pets: 'Animaux', multipliers: 'Multiplicateurs',
+      cash: 'Argent', influence: 'Influence', prestige: 'Prestige',
+      intelligence: 'Intelligence', stewardship: 'Intendance', eloquence: 'Éloquence', combat: 'Combat',
+      allTo: 'Tout à', familyAllTo: 'Toute la famille à', petsAllTo: 'Tous à',
+      jobLevel: 'Niveau métier', max: 'Max', maxTip: 'Monter au niveau maximum de ce métier', noJob: 'sans métier', maxShort: 'max',
+      traits: 'Traits', petTraits: "Traits de l'animal", add: 'Ajouter',
+      addTip: 'Utilise la fonction du jeu : applique les bonus du trait et retire les opposés',
+      traitNote: 'Ajouter/retirer un trait ajoute/retire aussi ses bonus de compétence. Les traits opposés sont retirés automatiquement.',
+      notAvailable: 'Indisponible dans cette version du jeu.', noTraits: 'Aucun trait', removeTrait: 'Retirer le trait',
+      you: '(vous)', noFamily: 'Pas de famille', noPets: "Pas d'animaux", petOwner: 'à {owner}',
+      aptitude: 'Aptitude', vigor: 'Vigueur', tameness: 'Docilité',
+      g_education: 'Éducation', g_personality: 'Personnalité', g_good: 'Bons', g_bad: 'Mauvais', g_goodGenetic: 'Génétique favorable',
+      g_badGenetic: 'Génétique défavorable', g_neutralGenetic: 'Génétique neutre', g_skill: 'Compétence', g_militaryHonor: 'Honneurs militaires', g_neutral: 'Neutres / charges',
+      household: 'Foyer', householdHealth: 'Santé du foyer', revenue: 'Revenus', householdFertility: 'Fertilité du foyer',
+      householdExpenses: 'Dépenses du foyer', householdStewardship: 'Intendance du foyer',
+      personal: 'Personnel', personalHealth: 'Santé personnelle', personalFertility: 'Fertilité personnelle',
+      personalExpenses: 'Dépenses personnelles', personalStewardship: 'Intendance personnelle',
+      petGroup: 'Animal', petHealth: "Santé de l'animal", petFertility: "Fertilité de l'animal", petExpenses: "Dépenses de l'animal",
+      jobs: 'Métiers', jobPrefix: 'Métier', properties: 'Propriétés', propPrefix: 'Propriété',
+      trainerFactor: 'Facteur trainer', removeFactor: 'Retirer', removeFactorTip: 'Retire le facteur du trainer', total: 'Total en jeu',
+      modNote: 'Se multiplie avec ceux du jeu. Pour « Dépenses », mieux vaut un facteur inférieur à 1 (ex. 0.5 = moitié des dépenses).',
+      activeNow: 'Actifs maintenant', none: 'Aucun', clickToEdit: 'Cliquez pour le modifier ci-dessus', removeAll: 'Retirer tous ceux du trainer',
+      legend: '★ = inclut un facteur du trainer. Vert = en votre faveur.',
+      health: 'Santé', fertility: 'Fertilité', expenses: 'Dépenses', stewardshipShort: 'Intendance', xOfY: '{x} de {y}',
+    },
+    de: {
+      langName: 'Deutsch', hideHint: 'F8 blendet aus',
+      resources: 'Ressourcen', family: 'Familie', pets: 'Haustiere', multipliers: 'Multiplikatoren',
+      cash: 'Geld', influence: 'Einfluss', prestige: 'Prestige',
+      intelligence: 'Intelligenz', stewardship: 'Verwaltung', eloquence: 'Redekunst', combat: 'Kampf',
+      allTo: 'Alles auf', familyAllTo: 'Ganze Familie auf', petsAllTo: 'Alle auf',
+      jobLevel: 'Berufsstufe', max: 'Max', maxTip: 'Auf die Höchststufe dieses Berufs setzen', noJob: 'ohne Beruf', maxShort: 'max',
+      traits: 'Eigenschaften', petTraits: 'Eigenschaften des Haustiers', add: 'Hinzufügen',
+      addTip: 'Nutzt die Spielfunktion: wendet die Boni der Eigenschaft an und entfernt Gegensätze',
+      traitNote: 'Hinzufügen/Entfernen einer Eigenschaft addiert/subtrahiert auch ihre Fertigkeitsboni. Gegensätzliche Eigenschaften werden automatisch entfernt.',
+      notAvailable: 'In dieser Spielversion nicht verfügbar.', noTraits: 'Keine Eigenschaften', removeTrait: 'Eigenschaft entfernen',
+      you: '(du)', noFamily: 'Keine Familie', noPets: 'Keine Haustiere', petOwner: 'von {owner}',
+      aptitude: 'Begabung', vigor: 'Vitalität', tameness: 'Zahmheit',
+      g_education: 'Bildung', g_personality: 'Persönlichkeit', g_good: 'Gut', g_bad: 'Schlecht', g_goodGenetic: 'Gute Genetik',
+      g_badGenetic: 'Schlechte Genetik', g_neutralGenetic: 'Neutrale Genetik', g_skill: 'Fertigkeit', g_militaryHonor: 'Militärische Ehren', g_neutral: 'Neutral / Ämter',
+      household: 'Haushalt', householdHealth: 'Gesundheit des Haushalts', revenue: 'Einnahmen', householdFertility: 'Fruchtbarkeit des Haushalts',
+      householdExpenses: 'Ausgaben des Haushalts', householdStewardship: 'Verwaltung des Haushalts',
+      personal: 'Persönlich', personalHealth: 'Persönliche Gesundheit', personalFertility: 'Persönliche Fruchtbarkeit',
+      personalExpenses: 'Persönliche Ausgaben', personalStewardship: 'Persönliche Verwaltung',
+      petGroup: 'Haustier', petHealth: 'Gesundheit des Haustiers', petFertility: 'Fruchtbarkeit des Haustiers', petExpenses: 'Ausgaben für das Haustier',
+      jobs: 'Berufe', jobPrefix: 'Beruf', properties: 'Besitztümer', propPrefix: 'Besitz',
+      trainerFactor: 'Trainer-Faktor', removeFactor: 'Entfernen', removeFactorTip: 'Entfernt den Trainer-Faktor', total: 'Gesamt im Spiel',
+      modNote: 'Wird mit denen des Spiels multipliziert. Bei „Ausgaben“ lieber einen Faktor unter 1 (z. B. 0.5 = halbe Ausgaben).',
+      activeNow: 'Jetzt aktiv', none: 'Keine', clickToEdit: 'Klicken, um oben zu bearbeiten', removeAll: 'Alle Trainer-Faktoren entfernen',
+      legend: '★ = enthält einen Trainer-Faktor. Grün = zu deinen Gunsten.',
+      health: 'Gesundheit', fertility: 'Fruchtbarkeit', expenses: 'Ausgaben', stewardshipShort: 'Verwaltung', xOfY: '{x} von {y}',
+    },
+  }
+
+  // Banderas en SVG (Windows no dibuja los emojis de banderas).
+  const stripesH = colors => colors.map((c, i) => '<rect y="' + (20 / colors.length) * i + '" width="30" height="' + (20 / colors.length + 0.05) + '" fill="' + c + '"/>').join('')
+  const stripesV = colors => colors.map((c, i) => '<rect x="' + 10 * i + '" width="10.05" height="20" fill="' + c + '"/>').join('')
+  const usa = () => {
+    let s = '<rect width="30" height="20" fill="#b22234"/>'
+    for (let i = 1; i < 13; i += 2) s += '<rect y="' + (20 / 13) * i + '" width="30" height="' + 20 / 13 + '" fill="#fff"/>'
+    s += '<rect width="12" height="' + (20 / 13) * 7 + '" fill="#3c3b6e"/>'
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) s += '<circle cx="' + (1.4 + c * 2.3) + '" cy="' + (1.4 + r * 2.5) + '" r=".45" fill="#fff"/>'
+    return s
+  }
+  const FLAGS = [
+    ['es', stripesH(['#74acdf', '#fff', '#74acdf']) + '<circle cx="15" cy="10" r="2.3" fill="#f6b40e"/>'],
+    ['pt', '<rect width="30" height="20" fill="#009c3b"/><polygon points="15,2.2 27.5,10 15,17.8 2.5,10" fill="#ffdf00"/><circle cx="15" cy="10" r="4.3" fill="#002776"/>'],
+    ['en', usa()],
+    ['ru', stripesH(['#fff', '#0039a6', '#d52b1e'])],
+    ['fr', stripesV(['#0055a4', '#fff', '#ef4135'])],
+    ['de', stripesH(['#000', '#dd0000', '#ffce00'])],
+  ]
+
+  let lang = ls.get('corTrainerLang', 'es')
+  if (!I18N[lang]) lang = 'es'
+  const t = (key, vars) => {
+    let s = I18N[lang][key] ?? I18N.es[key] ?? key
+    for (const k in vars || {}) s = s.replace('{' + k + '}', vars[k])
+    return s
+  }
 
   // Módulos internos del juego (webpack). Se usan las mismas funciones que usa
   // el juego (rasgos, nivel de trabajo, multiplicadores), así se aplican sus
@@ -53,15 +251,13 @@ const PANEL = String.raw`(() => {
     propTypes: req('08e5').default.types, propTitles: req('5785').default.types || {},
   }))
 
-  const GROUPS = {
-    education: 'Educación', personality: 'Personalidad', good: 'Buenos', bad: 'Malos',
-    goodGenetic: 'Genética buena', badGenetic: 'Genética mala', neutralGenetic: 'Genética neutral',
-    skill: 'Habilidad', militaryHonor: 'Honores militares', neutral: 'Neutrales / cargos',
-  }
+  const GROUP_ORDER = ['education', 'personality', 'good', 'bad', 'goodGenetic', 'badGenetic', 'neutralGenetic', 'skill', 'militaryHonor', 'neutral']
+  const groupName = g => GROUP_ORDER.includes(g) ? t('g_' + g) : g
   const SKILL_MAX = 30 // a partir de ~27 las fórmulas del juego ya dan el máximo (99%)
+  const TRAINER_MOD_ID = 'cor_trainer'
 
-  // --- Selección de personaje y mascota -------------------------------------
-  let selectedId = null
+  // --- Selección (se conserva al cambiar de idioma) ---------------------------
+  let selectedId = null, selectedPetId = null, modKey = 'household_health'
   const selected = () => S()?.characters?.[selectedId]
   const household = () => {
     const s = S()
@@ -69,7 +265,6 @@ const PANEL = String.raw`(() => {
     const ids = [s.current.id, ...(s.current.householdCharacterIds || [])]
     return [...new Set(ids)].map(id => s.characters[id]).filter(c => c && !c.isDead)
   }
-  let selectedPetId = null
   const pets = () => S()?.current?.pets || {}
   const selectedPet = () => pets()[selectedPetId]
   const householdPets = () => {
@@ -79,323 +274,346 @@ const PANEL = String.raw`(() => {
     household().forEach(ch => ids.push(...(ch.petIds || [])))
     return [...new Set(ids)].map(id => pets()[id]).filter(p => p && !p.isDead)
   }
-  const petLabel = p => {
-    const owner = S().characters[p.ownerId]?.praenomen
-    return p.name + ' (' + (PETS?.types[p.type]?.breed || p.type) + (owner ? ', de ' + owner : '') + ')'
-  }
-
-  // --- Estructura del panel --------------------------------------------------
-  document.getElementById('cor-trainer')?.remove()
-  const box = document.createElement('div')
-  box.id = 'cor-trainer'
-  box.style.cssText = 'position:fixed;top:12px;right:12px;z-index:2147483647;background:rgba(20,16,12,.94);' +
-    'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;padding:10px 12px;border:1px solid #b08d57;' +
-    'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);width:310px;max-height:90vh;overflow:auto;user-select:none'
-  box.innerHTML = '<div style="font-weight:600;margin-bottom:6px;color:#e0c07a">Trainer &middot; F8 oculta</div>'
-  // Que las teclas escritas en el panel no disparen atajos del juego (salvo F8).
-  box.addEventListener('keydown', e => { if (e.key !== 'F8') e.stopPropagation() })
 
   const fmt = v => typeof v === 'number' ? String(Math.round(v * 100) / 100) : ''
   const CTRL_CSS = 'background:#3a2e20;color:#f3e6c8;border:1px solid #b08d57;border-radius:4px'
   const el = (tag, css, parent) => { const e = document.createElement(tag); if (css) e.style.cssText = css; if (parent) parent.appendChild(e); return e }
-  const button = (parent, text, fn, title) => {
-    const b = el('button', CTRL_CSS + ';padding:1px 6px;cursor:pointer', parent)
-    b.textContent = text
-    if (title) b.title = title
-    b.onclick = () => { try { fn(); refresh(true) } catch (e) { console.warn('[trainer]', e) } }
-    return b
-  }
-  const select = (parent, onchange) => {
-    const s = el('select', CTRL_CSS + ';width:100%;padding:2px;margin:2px 0', parent)
-    s.onchange = () => { onchange(s.value); refresh(true) }
-    return s
-  }
-  const note = (parent, text) => { const n = el('div', 'font-size:11px;opacity:.7;margin-top:3px', parent); n.textContent = text; return n }
-  const subheading = (parent, text) => { const h = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600', parent); h.textContent = text }
 
-  // Sección plegable: clic en el título para abrir/cerrar (se recuerda).
-  const collapsed = (() => { try { return JSON.parse(localStorage.corTrainerCollapsed || '{}') } catch { return {} } })()
-  function section(title) {
-    const head = el('div', 'margin:8px 0 2px;padding-top:6px;border-top:1px solid #5a4630;color:#e0c07a;font-weight:600;cursor:pointer', box)
-    const body = el('div', '', box)
-    const paint = () => { head.textContent = (collapsed[title] ? '▸ ' : '▾ ') + title; body.style.display = collapsed[title] ? 'none' : '' }
-    head.onclick = () => { collapsed[title] = !collapsed[title]; try { localStorage.corTrainerCollapsed = JSON.stringify(collapsed) } catch {} ; paint() }
-    paint()
-    return body
-  }
+  // Construye el panel entero en el idioma actual. Cambiar de idioma lo reconstruye.
+  let refresh = () => {}
+  function build() {
+    document.getElementById('cor-trainer')?.remove()
+    const box = el('div', 'position:fixed;top:12px;right:12px;z-index:2147483647;background:rgba(20,16,12,.94);' +
+      'color:#f3e6c8;font:13px/1.4 system-ui,sans-serif;padding:10px 12px;border:1px solid #b08d57;' +
+      'border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.5);width:360px;max-height:90vh;overflow:auto;user-select:none')
+    box.id = 'cor-trainer'
+    box.lang = lang
+    // Que las teclas escritas en el panel no disparen atajos del juego (salvo F8).
+    box.addEventListener('keydown', e => { if (e.key !== 'F8') e.stopPropagation() })
 
-  // Fila: etiqueta, campo editable (Enter o salir del campo = aplicar) y botones +N.
-  // Opcionales: c.enabled() desactiva la fila, c.extra añade botones, c.suffix() una nota debajo.
-  const rows = []
-  function addRow(c, parent) {
-    const row = el('div', 'display:flex;align-items:center;gap:4px;margin:4px 0', parent)
-    const label = el('span', 'width:96px', row)
-    label.textContent = c.label
-    const input = el('input', CTRL_CSS + ';flex:1;min-width:0;padding:1px 4px;text-align:right;font-variant-numeric:tabular-nums', row)
-    input.type = 'number'
-    input.step = 'any'
-    input.addEventListener('change', () => {
-      const v = parseFloat(input.value)
-      if (!Number.isNaN(v)) { try { c.set(v) } catch (e) { console.warn('[trainer]', e) } }
-      refresh(true)
-    })
-    input.addEventListener('keydown', e => {
-      if (e.key === 'Enter') input.blur()
-      else if (e.key === 'Escape') { input.value = fmt(c.get()); input.blur() }
-    })
-    const short = n => n >= 1000 ? (n / 1000) + 'k' : String(n)
-    const btns = (c.steps || []).map(n => button(row, '+' + short(n), () => c.set((c.get() || 0) + n)))
-    for (const [text, fn, title] of c.extra || []) btns.push(button(row, text, fn, title))
-    let sub = null
-    if (c.suffix) sub = el('div', 'font-size:11px;opacity:.7;text-align:right;margin:-3px 0 4px', parent)
-    rows.push({ c, input, btns, sub })
-  }
+    // Cabecera: título + banderas para cambiar el idioma.
+    const header = el('div', 'margin-bottom:6px', box)
+    const titleLine = el('div', 'display:flex;justify-content:space-between;align-items:baseline', header)
+    const title = el('span', 'font-weight:600;color:#e0c07a', titleLine)
+    title.textContent = 'Trainer'
+    const hint = el('span', 'font-size:11px;opacity:.7', titleLine)
+    hint.textContent = t('hideHint')
+    const flags = el('div', 'display:flex;gap:6px;margin-top:6px', header)
+    for (const [code, svg] of FLAGS) {
+      const active = code === lang
+      const b = el('button', 'padding:0;line-height:0;cursor:pointer;background:none;border-radius:3px;' +
+        'border:2px solid ' + (active ? '#e0c07a' : 'transparent') + ';opacity:' + (active ? '1' : '.55') + ';transition:opacity .15s', flags)
+      b.title = I18N[code].langName
+      b.setAttribute('aria-label', I18N[code].langName)
+      b.setAttribute('aria-pressed', String(active))
+      b.innerHTML = '<svg width="30" height="20" viewBox="0 0 30 20" style="display:block;border-radius:1px">' + svg + '</svg>'
+      b.onmouseenter = () => { b.style.opacity = '1' }
+      b.onmouseleave = () => { b.style.opacity = active ? '1' : '.55' }
+      b.onclick = () => { if (code !== lang) { lang = code; ls.set('corTrainerLang', lang); build() } }
+    }
 
-  // Editor de rasgos reutilizable (personajes y mascotas).
-  const refreshers = []
-  function traitEditor(parent, { entity, list, title, describe, add, remove, available }) {
-    const chips = el('div', 'display:flex;flex-wrap:wrap;gap:4px;margin:4px 0', parent)
-    const line = el('div', 'display:flex;gap:4px;margin-top:4px', parent)
-    const pick = el('select', CTRL_CSS + ';flex:1;min-width:0;padding:2px', line)
-    button(line, 'Añadir', () => { const e = entity(); if (e && pick.value) add(e, pick.value) },
-      'Usa la función del juego: suma los bonus del rasgo y quita sus opuestos')
-    note(parent, 'Añadir/quitar un rasgo también suma/resta sus bonus de habilidad. Los opuestos se quitan solos.')
-    if (!available) { chips.textContent = 'No disponible en esta versión del juego.'; line.style.display = 'none'; return }
-    let sig = ''
-    refreshers.push(force => {
-      const e = entity(), owned = e?.traits || []
-      const now = (e?.id || '') + ':' + owned.join(',')
-      if (now === sig && !force) return
-      sig = now
-      chips.innerHTML = ''
-      if (!e) { chips.innerHTML = '<span style="opacity:.6">—</span>'; pick.innerHTML = ''; return }
-      if (!owned.length) chips.innerHTML = '<span style="opacity:.6">Sin rasgos</span>'
-      for (const id of owned) {
-        const chip = el('span', 'display:inline-flex;align-items:center;gap:3px;background:#2a2118;border:1px solid #5a4630;border-radius:10px;padding:0 4px 0 8px', chips)
-        chip.title = describe(id)
-        chip.append(title(id))
-        const x = button(chip, '×', () => remove(e, id), 'Quitar rasgo')
-        x.style.cssText += ';border:none;background:none;padding:0 2px;font-weight:700'
-      }
-      const prev = pick.value
-      pick.innerHTML = ''
-      const byGroup = {}
-      for (const [id, def] of Object.entries(list())) {
-        if (!owned.includes(id)) (byGroup[def.group] = byGroup[def.group] || []).push(id)
-      }
-      for (const g of Object.keys(GROUPS).concat(Object.keys(byGroup).filter(g => !GROUPS[g]))) {
-        if (!byGroup[g]) continue
-        const og = el('optgroup', '', pick)
-        og.label = GROUPS[g] || g
-        byGroup[g].sort((a, b) => title(a).localeCompare(title(b))).forEach(id => {
-          const o = el('option', '', og)
-          o.value = id
-          o.textContent = title(id)
-          o.title = describe(id)
-        })
-      }
-      if (prev && !owned.includes(prev)) pick.value = prev
-    })
-  }
+    const button = (parent, text, fn, tip) => {
+      const b = el('button', CTRL_CSS + ';padding:1px 6px;cursor:pointer', parent)
+      b.textContent = text
+      if (tip) b.title = tip
+      b.onclick = () => { try { fn(); refresh(true) } catch (e) { console.warn('[trainer]', e) } }
+      return b
+    }
+    const select = (parent, onchange) => {
+      const s = el('select', CTRL_CSS + ';width:100%;padding:2px;margin:2px 0', parent)
+      s.onchange = () => { onchange(s.value); refresh(true) }
+      return s
+    }
+    const note = (parent, text) => { const n = el('div', 'font-size:11px;opacity:.7;margin-top:3px', parent); n.textContent = text; return n }
+    const subheading = (parent, text) => { const h = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600', parent); h.textContent = text }
 
-  // Desplegable que se reconstruye solo cuando cambia la lista.
-  function rosterSelect(sel, list, getId, setId, label, emptyText) {
-    let sig = ''
-    refreshers.push(() => {
-      const items = list()
-      const now = items.map(x => x.id + label(x)).join('|')
-      if (now === sig) return
-      sig = now
-      if (!items.some(x => x.id === getId())) setId(items[0]?.id ?? null)
-      sel.innerHTML = ''
-      if (!items.length) sel.innerHTML = '<option value="">' + emptyText + '</option>'
-      for (const x of items) { const o = el('option', '', sel); o.value = x.id; o.textContent = label(x) }
-      sel.value = getId() ?? ''
-    })
-  }
+    // Sección plegable: clic en el título para abrir/cerrar (se recuerda por sección, no por idioma).
+    const collapsed = ls.get('corTrainerCollapsedV2', {})
+    function section(id) {
+      const head = el('div', 'margin:8px 0 2px;padding-top:6px;border-top:1px solid #5a4630;color:#e0c07a;font-weight:600;cursor:pointer', box)
+      const body = el('div', '', box)
+      const paint = () => { head.textContent = (collapsed[id] ? '▸ ' : '▾ ') + t(id); body.style.display = collapsed[id] ? 'none' : '' }
+      head.onclick = () => { collapsed[id] = !collapsed[id]; ls.set('corTrainerCollapsedV2', collapsed); paint() }
+      paint()
+      return body
+    }
 
-  // --- Sección: Recursos -----------------------------------------------------
-  const secRes = section('Recursos')
-  ;[
-    { label: 'Dinero',     get: () => S()?.current.cash,      set: v => { S().current.cash = v },      steps: [1000, 10000] },
-    { label: 'Influencia', get: () => S()?.current.influence, set: v => { S().current.influence = v }, steps: [1000, 10000] },
-    { label: 'Prestigio',  get: () => dynasty()?.prestige,    set: v => { dynasty().prestige = v },    steps: [1000, 10000] },
-  ].forEach(c => addRow(c, secRes))
+    // Fila: etiqueta, campo editable (Enter o salir del campo = aplicar) y botones +N.
+    // Opcionales: c.enabled() desactiva la fila, c.extra añade botones, c.suffix() una nota debajo.
+    const rows = []
+    function addRow(c, parent) {
+      const row = el('div', 'display:flex;align-items:center;gap:4px;margin:4px 0', parent)
+      const label = el('span', 'width:92px;flex-shrink:0', row)
+      label.textContent = c.label
+      const input = el('input', CTRL_CSS + ';flex:1;min-width:0;padding:1px 4px;text-align:right;font-variant-numeric:tabular-nums', row)
+      input.type = 'number'
+      input.step = 'any'
+      input.addEventListener('change', () => {
+        const v = parseFloat(input.value)
+        if (!Number.isNaN(v)) { try { c.set(v) } catch (e) { console.warn('[trainer]', e) } }
+        refresh(true)
+      })
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') input.blur()
+        else if (e.key === 'Escape') { input.value = fmt(c.get()); input.blur() }
+      })
+      const short = n => n >= 1000 ? (n / 1000) + 'k' : String(n)
+      const btns = (c.steps || []).map(n => button(row, '+' + short(n), () => c.set((c.get() || 0) + n)))
+      for (const [text, fn, tip] of c.extra || []) btns.push(button(row, text, fn, tip))
+      let sub = null
+      if (c.suffix) sub = el('div', 'font-size:11px;opacity:.7;text-align:right;margin:-3px 0 4px', parent)
+      rows.push({ c, input, btns, sub })
+    }
 
-  // --- Sección: Familia ------------------------------------------------------
-  const secFam = section('Familia')
-  const pick = select(secFam, v => { selectedId = v })
-  rosterSelect(pick, household, () => selectedId, v => { selectedId = v },
-    ch => ch.praenomen + (ch.id === S().current.id ? ' (tú)' : ''), 'Sin familia')
-  const SKILLS = { intelligence: 'Inteligencia', stewardship: 'Administración', eloquence: 'Elocuencia', combat: 'Combate' }
-  Object.entries(SKILLS).forEach(([key, label]) => addRow({
-    label, get: () => selected()?.skills?.[key], set: v => { selected().skills[key] = v }, steps: [1, 5],
-  }, secFam))
-  const bulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px', secFam)
-  button(bulk, 'Todo a ' + SKILL_MAX, () => { for (const k in SKILLS) selected().skills[k] = SKILL_MAX })
-  button(bulk, 'Toda la familia a ' + SKILL_MAX, () => household().forEach(ch => { for (const k in SKILLS) ch.skills[k] = SKILL_MAX }))
+    // Editor de rasgos reutilizable (personajes y mascotas).
+    const refreshers = []
+    function traitEditor(parent, { entity, list, title, describe, add, remove, available }) {
+      const chips = el('div', 'display:flex;flex-wrap:wrap;gap:4px;margin:4px 0', parent)
+      const line = el('div', 'display:flex;gap:4px;margin-top:4px', parent)
+      const pick = el('select', CTRL_CSS + ';flex:1;min-width:0;padding:2px', line)
+      button(line, t('add'), () => { const e = entity(); if (e && pick.value) add(e, pick.value) }, t('addTip'))
+      note(parent, t('traitNote'))
+      if (!available) { chips.textContent = t('notAvailable'); line.style.display = 'none'; return }
+      let sig = ''
+      refreshers.push(force => {
+        const e = entity(), owned = e?.traits || []
+        const now = (e?.id || '') + ':' + owned.join(',')
+        if (now === sig && !force) return
+        sig = now
+        chips.innerHTML = ''
+        if (!e) { chips.innerHTML = '<span style="opacity:.6">—</span>'; pick.innerHTML = ''; return }
+        if (!owned.length) { const n = el('span', 'opacity:.6', chips); n.textContent = t('noTraits') }
+        for (const id of owned) {
+          const chip = el('span', 'display:inline-flex;align-items:center;gap:3px;background:#2a2118;border:1px solid #5a4630;border-radius:10px;padding:0 4px 0 8px', chips)
+          chip.title = describe(id)
+          chip.append(title(id))
+          const x = button(chip, '×', () => remove(e, id), t('removeTrait'))
+          x.style.cssText += ';border:none;background:none;padding:0 2px;font-weight:700'
+        }
+        const prev = pick.value
+        pick.innerHTML = ''
+        const byGroup = {}
+        for (const [id, def] of Object.entries(list())) {
+          if (!owned.includes(id)) (byGroup[def.group] = byGroup[def.group] || []).push(id)
+        }
+        for (const g of GROUP_ORDER.concat(Object.keys(byGroup).filter(g => !GROUP_ORDER.includes(g)))) {
+          if (!byGroup[g]) continue
+          const og = el('optgroup', '', pick)
+          og.label = groupName(g)
+          byGroup[g].sort((a, b) => title(a).localeCompare(title(b))).forEach(id => {
+            const o = el('option', '', og)
+            o.value = id
+            o.textContent = title(id)
+            o.title = describe(id)
+          })
+        }
+        if (prev && !owned.includes(prev)) pick.value = prev
+      })
+    }
 
-  const jobMax = () => { const ch = selected(); return (ch?.job && JOBS?.types[ch.job]?.maxLevel) || 0 }
-  const setJobLevel = v => {
-    const ch = selected()
-    if (!ch?.job) return
-    if (JOBS) JOBS.set(S(), { characterId: ch.id, jobLevel: v })
-    else ch.jobLevel = Math.max(0, v)
-  }
-  addRow({
-    label: 'Nivel trabajo',
-    get: () => selected()?.job ? selected().jobLevel : undefined,
-    set: setJobLevel,
-    enabled: () => !!selected()?.job,
-    steps: [1, 5],
-    extra: [['Máx', () => setJobLevel(jobMax()), 'Sube al nivel máximo de este trabajo']],
-    suffix: () => {
+    // Desplegable que se reconstruye solo cuando cambia la lista.
+    function rosterSelect(sel, list, getId, setId, label, emptyText) {
+      let sig = ''
+      refreshers.push(() => {
+        const items = list()
+        const now = items.map(x => x.id + label(x)).join('|')
+        if (now === sig) return
+        sig = now
+        if (!items.some(x => x.id === getId())) setId(items[0]?.id ?? null)
+        sel.innerHTML = ''
+        if (!items.length) { const o = el('option', '', sel); o.value = ''; o.textContent = emptyText }
+        for (const x of items) { const o = el('option', '', sel); o.value = x.id; o.textContent = label(x) }
+        sel.value = getId() ?? ''
+      })
+    }
+
+    // --- Sección: Recursos ---------------------------------------------------
+    const secRes = section('resources')
+    ;[
+      { label: t('cash'),       get: () => S()?.current.cash,      set: v => { S().current.cash = v },      steps: [1000, 10000] },
+      { label: t('influence'),  get: () => S()?.current.influence, set: v => { S().current.influence = v }, steps: [1000, 10000] },
+      { label: t('prestige'),   get: () => dynasty()?.prestige,    set: v => { dynasty().prestige = v },    steps: [1000, 10000] },
+    ].forEach(c => addRow(c, secRes))
+
+    // --- Sección: Familia ----------------------------------------------------
+    const secFam = section('family')
+    const pick = select(secFam, v => { selectedId = v })
+    rosterSelect(pick, household, () => selectedId, v => { selectedId = v },
+      ch => ch.praenomen + (ch.id === S().current.id ? ' ' + t('you') : ''), t('noFamily'))
+    const SKILLS = ['intelligence', 'stewardship', 'eloquence', 'combat']
+    SKILLS.forEach(key => addRow({
+      label: t(key), get: () => selected()?.skills?.[key], set: v => { selected().skills[key] = v }, steps: [1, 5],
+    }, secFam))
+    const bulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px', secFam)
+    button(bulk, t('allTo') + ' ' + SKILL_MAX, () => { for (const k of SKILLS) selected().skills[k] = SKILL_MAX })
+    button(bulk, t('familyAllTo') + ' ' + SKILL_MAX, () => household().forEach(ch => { for (const k of SKILLS) ch.skills[k] = SKILL_MAX }))
+
+    const jobMax = () => { const ch = selected(); return (ch?.job && JOBS?.types[ch.job]?.maxLevel) || 0 }
+    const setJobLevel = v => {
       const ch = selected()
-      if (!ch?.job) return 'sin trabajo'
-      return (JOBS?.titles[ch.job] || ch.job) + ' · máx ' + jobMax()
-    },
-  }, secFam)
+      if (!ch?.job) return
+      if (JOBS) JOBS.set(S(), { characterId: ch.id, jobLevel: v })
+      else ch.jobLevel = Math.max(0, v)
+    }
+    addRow({
+      label: t('jobLevel'),
+      get: () => selected()?.job ? selected().jobLevel : undefined,
+      set: setJobLevel,
+      enabled: () => !!selected()?.job,
+      steps: [1, 5],
+      extra: [[t('max'), () => setJobLevel(jobMax()), t('maxTip')]],
+      suffix: () => {
+        const ch = selected()
+        if (!ch?.job) return t('noJob')
+        return (JOBS?.titles[ch.job] || ch.job) + ' · ' + t('maxShort') + ' ' + jobMax()
+      },
+    }, secFam)
 
-  subheading(secFam, 'Rasgos')
-  traitEditor(secFam, {
-    available: !!TR, entity: selected, list: () => TR.list,
-    title: id => TR.titles[id]?.title || id, describe: id => TR.titles[id]?.description || '',
-    add: (ch, id) => {
-      TR.add(ch, id)
-      if (TR.discoverable.includes(id)) {
-        ch.discoveredTraits = ch.discoveredTraits || []
-        if (!ch.discoveredTraits.includes(id)) ch.discoveredTraits.push(id)
+    subheading(secFam, t('traits'))
+    traitEditor(secFam, {
+      available: !!TR, entity: selected, list: () => TR.list,
+      title: id => TR.titles[id]?.title || id, describe: id => TR.titles[id]?.description || '',
+      add: (ch, id) => {
+        TR.add(ch, id)
+        if (TR.discoverable.includes(id)) {
+          ch.discoveredTraits = ch.discoveredTraits || []
+          if (!ch.discoveredTraits.includes(id)) ch.discoveredTraits.push(id)
+        }
+      },
+      remove: (ch, id) => TR.remove(ch, id),
+    })
+
+    // --- Sección: Mascotas ---------------------------------------------------
+    const secPets = section('pets')
+    const petPick = select(secPets, v => { selectedPetId = v })
+    const petLabel = p => {
+      const owner = S().characters[p.ownerId]?.praenomen
+      return p.name + ' (' + (PETS?.types[p.type]?.breed || p.type) + (owner ? ', ' + t('petOwner', { owner }) : '') + ')'
+    }
+    rosterSelect(petPick, householdPets, () => selectedPetId, v => { selectedPetId = v }, petLabel, t('noPets'))
+    const PET_SKILLS = ['aptitude', 'vigor', 'tameness']
+    PET_SKILLS.forEach(key => addRow({
+      label: t(key), get: () => selectedPet()?.skills?.[key], set: v => { selectedPet().skills[key] = v },
+      enabled: () => !!selectedPet(), steps: [1, 5],
+    }, secPets))
+    const petBulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px', secPets)
+    button(petBulk, t('allTo') + ' ' + SKILL_MAX, () => { const p = selectedPet(); if (p) for (const k of PET_SKILLS) p.skills[k] = SKILL_MAX })
+    button(petBulk, t('petsAllTo') + ' ' + SKILL_MAX, () => householdPets().forEach(p => { for (const k of PET_SKILLS) p.skills[k] = SKILL_MAX }))
+    subheading(secPets, t('petTraits'))
+    traitEditor(secPets, {
+      available: !!PETS, entity: selectedPet, list: () => PETS.traitList,
+      title: id => PETS.traitTitles[id]?.title || id, describe: id => PETS.traitTitles[id]?.description || '',
+      add: (p, id) => PETS.add(p, id), remove: (p, id) => PETS.remove(p, id),
+    })
+
+    // --- Sección: Multiplicadores --------------------------------------------
+    // El juego multiplica todos los modificadores activos de una clave. El trainer
+    // añade UNO propio por clave (id "cor_trainer", permanente) que puedes cambiar
+    // o quitar sin tocar los del juego.
+    const secMods = section('multipliers')
+    const modCatalog = () => {
+      const out = [
+        [t('household'), [['household_health', t('householdHealth')], ['revenue', t('revenue')], ['household_fertility', t('householdFertility')],
+          ['household_expenses', t('householdExpenses')], ['household_stewardship', t('householdStewardship')]]],
+      ]
+      const ch = selected(), p = selectedPet()
+      if (ch) out.push([t('personal') + ': ' + ch.praenomen, [['character_health_' + ch.id, t('personalHealth')], ['character_fertility_' + ch.id, t('personalFertility')],
+        ['character_expenses_' + ch.id, t('personalExpenses')], ['character_stewardship_' + ch.id, t('personalStewardship')]]])
+      if (p) out.push([t('petGroup') + ': ' + p.name, [['pet_health_' + p.id, t('petHealth')], ['pet_fertility_' + p.id, t('petFertility')],
+        ['pet_expenses_' + p.id, t('petExpenses')]]])
+      if (JOBS) out.push([t('jobs'), Object.keys(JOBS.types).map(j => ['job_' + j, t('jobPrefix') + ': ' + (JOBS.titles[j] || j)]).sort((a, b) => a[1].localeCompare(b[1]))])
+      if (MODS) out.push([t('properties'), Object.keys(MODS.propTypes).map(k => ['property_' + k, t('propPrefix') + ': ' + (MODS.propTitles[k]?.title || k)]).sort((a, b) => a[1].localeCompare(b[1]))])
+      return out
+    }
+    const PERSONAL = { health: 'health', fertility: 'fertility', expenses: 'expenses', stewardship: 'stewardshipShort' }
+    const modName = key => {
+      for (const [, items] of modCatalog()) for (const [k, n] of items) if (k === key) return n
+      const m = key.match(/^(character|pet)_(health|fertility|expenses|stewardship)_(.+)$/)
+      if (m) {
+        const who = m[1] === 'pet' ? pets()[m[3]]?.name : S().characters[m[3]]?.praenomen
+        return t('xOfY', { x: t(PERSONAL[m[2]]), y: who || '?' })
       }
-    },
-    remove: (ch, id) => TR.remove(ch, id),
-  })
-
-  // --- Sección: Mascotas -----------------------------------------------------
-  const secPets = section('Mascotas')
-  const petPick = select(secPets, v => { selectedPetId = v })
-  rosterSelect(petPick, householdPets, () => selectedPetId, v => { selectedPetId = v }, petLabel, 'Sin mascotas')
-  const PET_SKILLS = { aptitude: 'Aptitud', vigor: 'Vigor', tameness: 'Docilidad' }
-  Object.entries(PET_SKILLS).forEach(([key, label]) => addRow({
-    label, get: () => selectedPet()?.skills?.[key], set: v => { selectedPet().skills[key] = v },
-    enabled: () => !!selectedPet(), steps: [1, 5],
-  }, secPets))
-  const petBulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin-top:4px', secPets)
-  button(petBulk, 'Todo a ' + SKILL_MAX, () => { const p = selectedPet(); if (p) for (const k in PET_SKILLS) p.skills[k] = SKILL_MAX })
-  button(petBulk, 'Todas a ' + SKILL_MAX, () => householdPets().forEach(p => { for (const k in PET_SKILLS) p.skills[k] = SKILL_MAX }))
-  subheading(secPets, 'Rasgos de la mascota')
-  traitEditor(secPets, {
-    available: !!PETS, entity: selectedPet, list: () => PETS.traitList,
-    title: id => PETS.traitTitles[id]?.title || id, describe: id => PETS.traitTitles[id]?.description || '',
-    add: (p, id) => PETS.add(p, id), remove: (p, id) => PETS.remove(p, id),
-  })
-
-  // --- Sección: Multiplicadores ----------------------------------------------
-  // El juego multiplica todos los modificadores activos de una clave. El trainer
-  // añade UNO propio por clave (id "cor_trainer", permanente) que puedes cambiar
-  // o quitar sin tocar los del juego.
-  const TRAINER_MOD_ID = 'cor_trainer'
-  const secMods = section('Multiplicadores')
-  const modCatalog = () => {
-    const out = [
-      ['Casa', [['household_health', 'Salud de la casa'], ['revenue', 'Ingresos'], ['household_fertility', 'Fertilidad de la casa'],
-        ['household_expenses', 'Gastos de la casa'], ['household_stewardship', 'Administración de la casa']]],
-    ]
-    const ch = selected(), p = selectedPet()
-    if (ch) out.push(['Personal: ' + ch.praenomen, [['character_health_' + ch.id, 'Salud personal'], ['character_fertility_' + ch.id, 'Fertilidad personal'],
-      ['character_expenses_' + ch.id, 'Gastos personales'], ['character_stewardship_' + ch.id, 'Administración personal']]])
-    if (p) out.push(['Mascota: ' + p.name, [['pet_health_' + p.id, 'Salud de la mascota'], ['pet_fertility_' + p.id, 'Fertilidad de la mascota'],
-      ['pet_expenses_' + p.id, 'Gastos de la mascota']]])
-    if (JOBS) out.push(['Trabajos', Object.keys(JOBS.types).map(j => ['job_' + j, 'Trabajo: ' + (JOBS.titles[j] || j)]).sort((a, b) => a[1].localeCompare(b[1]))])
-    if (MODS) out.push(['Propiedades', Object.keys(MODS.propTypes).map(k => ['property_' + k, 'Propiedad: ' + (MODS.propTitles[k]?.title || k)]).sort((a, b) => a[1].localeCompare(b[1]))])
-    return out
-  }
-  const PERSONAL = { health: 'Salud', fertility: 'Fertilidad', expenses: 'Gastos', stewardship: 'Administración' }
-  const modName = key => {
-    for (const [, items] of modCatalog()) for (const [k, n] of items) if (k === key) return n
-    const m = key.match(/^(character|pet)_(health|fertility|expenses|stewardship)_(.+)$/)
-    if (m) {
-      const who = m[1] === 'pet' ? pets()[m[3]]?.name : S().characters[m[3]]?.praenomen
-      return PERSONAL[m[2]] + ' de ' + (who || '?')
+      return key
     }
-    return key
-  }
-  const trainerFactor = key => (S()?.current?.modifiers?.[key] || []).find(m => m.id === TRAINER_MOD_ID)?.factor
-  const setTrainerFactor = (key, f) => {
-    MODS.remove(key, TRAINER_MOD_ID)
-    if (f && Math.abs(f - 1) > 1e-9) MODS.add(key, TRAINER_MOD_ID, Math.max(0.01, f), 'Trainer')
-  }
-
-  let modKey = 'household_health'
-  const modPick = select(secMods, v => { modKey = v })
-  let modSig = ''
-  refreshers.push(() => {
-    const cat = modCatalog()
-    const now = cat.map(([g, items]) => g + items.length).join('|')
-    if (now === modSig) return
-    modSig = now
-    modPick.innerHTML = ''
-    for (const [g, items] of cat) {
-      const og = el('optgroup', '', modPick)
-      og.label = g
-      for (const [k, n] of items) { const o = el('option', '', og); o.value = k; o.textContent = n }
+    const trainerFactor = key => (S()?.current?.modifiers?.[key] || []).find(m => m.id === TRAINER_MOD_ID)?.factor
+    const setTrainerFactor = (key, f) => {
+      MODS.remove(key, TRAINER_MOD_ID)
+      if (f && Math.abs(f - 1) > 1e-9) MODS.add(key, TRAINER_MOD_ID, Math.max(0.01, f), 'Trainer')
     }
-    if (![...modPick.options].some(o => o.value === modKey)) modKey = 'household_health'
-    modPick.value = modKey
-  })
-  addRow({
-    label: 'Factor trainer', get: () => trainerFactor(modKey) ?? 1, set: f => setTrainerFactor(modKey, f), enabled: () => !!MODS,
-    extra: [['×2', () => setTrainerFactor(modKey, (trainerFactor(modKey) ?? 1) * 2)], ['Quitar', () => setTrainerFactor(modKey, 1), 'Quita el factor del trainer']],
-    suffix: () => 'Total en juego: ×' + fmt(MODS?.value(modKey) ?? 1),
-  }, secMods)
-  note(secMods, 'Se multiplica con los del juego. En "Gastos" conviene un factor menor que 1 (p. ej. 0.5 = mitad de gastos).')
 
-  subheading(secMods, 'Activos ahora')
-  const active = el('div', 'font-size:12px;margin-top:2px', secMods)
-  const clearAll = el('div', 'display:flex;justify-content:flex-end;margin-top:4px', secMods)
-  button(clearAll, 'Quitar todos los del trainer', () => {
-    for (const key of Object.keys(S().current.modifiers || {})) MODS.remove(key, TRAINER_MOD_ID)
-  })
-  let activeSig = ''
-  refreshers.push(force => {
-    if (!MODS) { active.textContent = 'No disponible en esta versión del juego.'; return }
-    const items = Object.keys(S()?.current?.modifiers || {})
-      .map(k => [k, MODS.value(k), trainerFactor(k)])
-      .filter(([, v]) => typeof v === 'number' && Math.abs(v - 1) > 0.005)
-    const now = items.map(x => x.join(':')).join('|')
-    if (now === activeSig && !force) return
-    activeSig = now
-    active.innerHTML = ''
-    if (!items.length) active.innerHTML = '<span style="opacity:.6">Ninguno</span>'
-    for (const [k, v, t] of items) {
-      const row = el('div', 'display:flex;justify-content:space-between;gap:6px;cursor:pointer', active)
-      row.title = 'Clic para editarlo arriba'
-      row.onclick = () => { modKey = k; modSig = ''; refresh(true) }
-      const name = el('span', '', row)
-      name.textContent = modName(k) + (t ? ' ★' : '')
-      const val = el('span', 'font-variant-numeric:tabular-nums;color:' + ((k.includes('expenses') ? v < 1 : v > 1) ? '#9fd38a' : '#e38a7a'), row)
-      val.textContent = '×' + fmt(v)
+    const modPick = select(secMods, v => { modKey = v })
+    let modSig = ''
+    refreshers.push(() => {
+      const cat = modCatalog()
+      const now = cat.map(([g, items]) => g + items.length).join('|')
+      if (now === modSig) return
+      modSig = now
+      modPick.innerHTML = ''
+      for (const [g, items] of cat) {
+        const og = el('optgroup', '', modPick)
+        og.label = g
+        for (const [k, n] of items) { const o = el('option', '', og); o.value = k; o.textContent = n }
+      }
+      if (![...modPick.options].some(o => o.value === modKey)) modKey = 'household_health'
+      modPick.value = modKey
+    })
+    addRow({
+      label: t('trainerFactor'), get: () => trainerFactor(modKey) ?? 1, set: f => setTrainerFactor(modKey, f), enabled: () => !!MODS,
+      extra: [['×2', () => setTrainerFactor(modKey, (trainerFactor(modKey) ?? 1) * 2)], [t('removeFactor'), () => setTrainerFactor(modKey, 1), t('removeFactorTip')]],
+      suffix: () => t('total') + ': ×' + fmt(MODS?.value(modKey) ?? 1),
+    }, secMods)
+    note(secMods, t('modNote'))
+
+    subheading(secMods, t('activeNow'))
+    const active = el('div', 'font-size:12px;margin-top:2px', secMods)
+    const clearAll = el('div', 'display:flex;justify-content:flex-end;margin-top:4px', secMods)
+    button(clearAll, t('removeAll'), () => {
+      for (const key of Object.keys(S().current.modifiers || {})) MODS.remove(key, TRAINER_MOD_ID)
+    })
+    let activeSig = ''
+    refreshers.push(force => {
+      if (!MODS) { active.textContent = t('notAvailable'); return }
+      const items = Object.keys(S()?.current?.modifiers || {})
+        .map(k => [k, MODS.value(k), trainerFactor(k)])
+        .filter(([, v]) => typeof v === 'number' && Math.abs(v - 1) > 0.005)
+      const now = items.map(x => x.join(':')).join('|')
+      if (now === activeSig && !force) return
+      activeSig = now
+      active.innerHTML = ''
+      if (!items.length) { const n = el('span', 'opacity:.6', active); n.textContent = t('none') }
+      for (const [k, v, tf] of items) {
+        const row = el('div', 'display:flex;justify-content:space-between;gap:6px;cursor:pointer', active)
+        row.title = t('clickToEdit')
+        row.onclick = () => { modKey = k; modSig = ''; refresh(true) }
+        const name = el('span', '', row)
+        name.textContent = modName(k) + (tf ? ' ★' : '')
+        const val = el('span', 'font-variant-numeric:tabular-nums;color:' + ((k.includes('expenses') ? v < 1 : v > 1) ? '#9fd38a' : '#e38a7a'), row)
+        val.textContent = '×' + fmt(v)
+      }
+    })
+    note(secMods, t('legend'))
+
+    document.body.appendChild(box)
+
+    // --- Refresco -------------------------------------------------------------
+    refresh = force => {
+      for (const fn of refreshers) { try { fn(force) } catch (e) { console.warn('[trainer]', e) } }
+      for (const { c, input, btns, sub } of rows) {
+        let on = true; try { on = c.enabled ? c.enabled() : true } catch { on = false }
+        input.disabled = !on
+        btns.forEach(b => { b.disabled = !on; b.style.opacity = on ? '' : '.4' })
+        if (sub) { try { sub.textContent = c.suffix() } catch {} }
+        if (document.activeElement === input) continue // no pisar lo que estás escribiendo
+        let v; try { v = c.get() } catch {}
+        input.value = fmt(v)
+      }
     }
-  })
-  note(secMods, '★ = incluye un factor del trainer. Verde = te favorece.')
-
-  document.body.appendChild(box)
-
-  // --- Refresco ---------------------------------------------------------------
-  function refresh(force) {
-    for (const fn of refreshers) { try { fn(force) } catch (e) { console.warn('[trainer]', e) } }
-    for (const { c, input, btns, sub } of rows) {
-      let on = true; try { on = c.enabled ? c.enabled() : true } catch { on = false }
-      input.disabled = !on
-      btns.forEach(b => { b.disabled = !on; b.style.opacity = on ? '' : '.4' })
-      if (sub) { try { sub.textContent = c.suffix() } catch {} }
-      if (document.activeElement === input) continue // no pisar lo que estás escribiendo
-      let v; try { v = c.get() } catch {}
-      input.value = fmt(v)
-    }
+    clearInterval(window.__corTrainerTimer)
+    window.__corTrainerTimer = setInterval(() => refresh(), 500)
+    refresh(true)
   }
-  clearInterval(window.__corTrainerTimer)
-  window.__corTrainerTimer = setInterval(refresh, 500)
-  refresh(true)
+
+  build()
 
   if (!window.__corTrainerKeys) {
     window.__corTrainerKeys = true
