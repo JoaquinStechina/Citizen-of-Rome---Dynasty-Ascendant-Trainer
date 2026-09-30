@@ -423,7 +423,19 @@ const PANEL = String.raw`(() => {
     // Secciones: tarjetas en una rejilla. Si el panel es ancho se reparten en
     // varias columnas. Se pueden plegar (clic en el título) y reordenar
     // (arrastrando la cabecera o con ▲▼). Plegado y orden se recuerdan.
-    const grid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));column-gap:18px;align-items:start', box)
+    const grid = el('div', 'display:grid;grid-template-columns:minmax(0,1fr);column-gap:18px;align-items:start', box)
+    // Número de columnas = cuántas tarjetas normales caben (mín. 290px c/u), sin
+    // pasar del número de tarjetas: así no quedan columnas vacías a la derecha.
+    // (Las tarjetas a todo el ancho, como Propiedades, no cuentan.)
+    const COL_MIN = 290, COL_GAP = 18
+    const fitColumns = () => {
+      const normal = Object.values(cards).filter(c => c.style.gridColumn !== '1 / -1').length || 1
+      const fit = Math.floor((grid.clientWidth + COL_GAP) / (COL_MIN + COL_GAP)) || 1
+      grid.style.gridTemplateColumns = 'repeat(' + Math.max(1, Math.min(normal, fit)) + ',minmax(0,1fr))'
+    }
+    window.__corTrainerGridRO?.disconnect()
+    window.__corTrainerGridRO = new ResizeObserver(fitColumns)
+    window.__corTrainerGridRO.observe(grid)
     const collapsed = ls.get('corTrainerCollapsedV2', {})
     const cards = {}
     let order = (ls.get('corTrainerOrder', null) || []).filter(id => SECTION_IDS.includes(id))
@@ -775,7 +787,7 @@ const PANEL = String.raw`(() => {
       const limit = k => Math.floor(PROPS.max(k) || 0)
       const propBulk = el('div', 'display:flex;gap:4px;justify-content:flex-end;margin:2px 0 4px', secProps)
       button(propBulk, t('allToLimit'), () => Object.keys(PROPS.types).forEach(k => setCount(k, limit(k))))
-      const propGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));column-gap:22px;align-items:start', secProps)
+      const propGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));column-gap:22px;align-items:start', secProps)
       for (const g of ['land', 'animal', 'boat', 'estate']) {
         const keys = (PROPS.groups[g]?.properties || []).filter(k => PROPS.types[k])
         if (!keys.length) continue
