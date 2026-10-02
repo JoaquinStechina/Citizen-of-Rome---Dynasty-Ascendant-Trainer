@@ -1,4 +1,14 @@
-# Mecánicas de Citizen of Rome - Dynasty Ascendant
+# Documentación
+
+## El trainer
+
+| Documento | Contenido |
+|---|---|
+| [Guía del trainer](guia.md) | El panel, cada sección en detalle y problemas frecuentes |
+| [Avisos](avisos.md) | Puerto de depuración, logros de Steam, copias de seguridad |
+| [Desarrollo](desarrollo.md) | Cómo funciona, estructura del código, añadir secciones e idiomas, actualizaciones del juego |
+
+## Mecánicas de Citizen of Rome - Dynasty Ascendant
 
 Notas sobre cómo funciona el juego por dentro, sacadas de su código (versión **1.6.36**) mientras se desarrollaba el trainer. Sirven para jugar mejor y para mantener el trainer.
 

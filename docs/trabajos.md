@@ -4,24 +4,65 @@ Hay 90 trabajos, de seis tipos: `apprentice` (oficios que se aprenden), `random`
 
 **Ningún trabajo da más salud o más vida por ejercerlo.** Los beneficios son los de abajo.
 
+## Ingresos de un trabajo `[522c]`
+
+```
+ingreso = base × (1 + nivel / mín(13,5, nivel_máx)) × multiplicador
+multiplicador = job_<oficio> × ingresos (modificadores y rasgos) × habilidades   [7ec1]
+habilidades   = 1 + Σ (habilidad × peso del oficio) / 135
+```
+
+- **Cada nivel suma un 7,4% del sueldo base** (1/13,5), sin tope hasta el nivel máximo. Por eso el **nivel máximo pesa más que el sueldo base**: a nivel máximo se cobra `base × (1 + nivel_máx / 13,5)`.
+- Las **habilidades no tienen tope** en esta fórmula. Con 30 en las habilidades del oficio, el sueldo se multiplica por 1,4–2,1; con habilidades mucho mayores, por mucho más.
+- No cobra quien está muerto, se mudó, está fuera o desaparecido. En modo fácil, ×1,25.
+- *Vestal Virgin* tiene nivel máximo 0: la fórmula da `0/0` y el juego le paga **0**.
+
 ## Oficios mejor pagados
 
-| Oficio | Ingresos base | Nivel máximo |
-|---|---|---|
-| Lawyer | 20,1 | 200 |
-| Judge | 18,8 | 50 |
-| Philosophy Tutor | 16,3 | 125 |
-| Physician | 15,7 | 150 |
-| Scribe (funcionario) | 15,7 | 50 |
-| Rhetor | 15,3 | 125 |
-| Clerk (funcionario) | 14,4 | 50 |
-| Lictor (funcionario) | 12,6 | 50 |
-| Grammaticus | 12,2 | 125 |
-| Herald (funcionario) | 10,7 | 50 |
-| Secretary | 10,2 | 40 |
-| Figure Painter | 9,4 | 300 |
+Ordenados por el sueldo a nivel máximo (sin multiplicadores ni habilidades). La última columna añade 30 en las habilidades que usa el oficio.
 
-El juego muestra los ingresos de cada trabajo "por mes". El nivel sube solo con el tiempo, con cierta probabilidad, hasta el máximo de cada oficio `[904c]`; la función que lo fija lo limita a `[0, nivel_máx]` `[6cf7]`. (La fórmula exacta de ingresos por nivel no se verificó.)
+| Oficio | Base | Nivel máx. | A nivel 20 | A nivel máx. | Máx. + habilidades 30 | Habilidades (peso) |
+|---|---|---|---|---|---|---|
+| Lawyer | 20,1 | 200 | 49,8 | **317,7** | **656,6** | inteligencia 1,8 · elocuencia 3 |
+| Figure Painter | 9,4 | 300 | 23,4 | 218,7 | 366,9 | inteligencia 2 · elocuencia 1,05 |
+| Physician | 15,7 | 150 | 38,9 | 190,1 | 325,2 | inteligencia 2 · elocuencia 1,2 |
+| Philosophy Tutor | 16,3 | 125 | 40,5 | 167,4 | 316,2 | inteligencia 2,5 · elocuencia 1,5 |
+| Rhetor | 15,3 | 125 | 37,9 | 156,5 | 295,6 | inteligencia 2,5 · elocuencia 1,5 |
+| Grammaticus | 12,2 | 125 | 30,3 | 125,2 | 236,5 | inteligencia 2,5 · elocuencia 1,5 |
+| Bestiarius | 2,6 | 625 | 6,5 | 123,1 | 205,2 | inteligencia 1 · combate 2 |
+| Jeweler | 6,3 | 250 | 15,6 | 122,5 | 258,7 | inteligencia 1,5 · administración 2 · elocuencia 1,5 |
+| Painter | 6,3 | 250 | 15,6 | 122,5 | 205,6 | inteligencia 2 · elocuencia 1,05 |
+| Theater Performer | 2,8 | 500 | 6,9 | 106,1 | 200,5 | inteligencia 1,5 · elocuencia 2,5 |
+| Barber | 2,5 | 500 | 6,2 | 95,5 | 146,5 | inteligencia 1,2 · elocuencia 1,2 |
+| Judge | 18,8 | 50 | 46,7 | 88,6 | 157,5 | inteligencia 1,5 · elocuencia 2 |
+| Scribe (funcionario) | 15,7 | 50 | 38,9 | 73,8 | 147,6 | inteligencia 1,5 · administración 1 · elocuencia 2 |
+| Trader | 5,6 | 150 | 14,0 | 68,4 | 136,8 | inteligencia 1 · administración 2 · elocuencia 1,5 |
+| Clerk (funcionario) | 14,4 | 50 | 35,8 | 67,9 | 135,8 | inteligencia 1,5 · administración 1 · elocuencia 2 |
+| Litterator | 6,6 | 125 | 16,4 | 67,8 | 128,1 | inteligencia 2,5 · elocuencia 1,5 |
+| Stone Mason | 5,0 | 150 | 12,5 | 60,8 | 101,4 | inteligencia 1 · combate 2 |
+| Lictor (funcionario) | 12,6 | 50 | 31,2 | 59,1 | 98,4 | inteligencia 1 · combate 2 |
+| Herald (funcionario) | 10,7 | 50 | 26,5 | 50,2 | 106,0 | inteligencia 1 · administración 1 · elocuencia 3 |
+| Carpenter | 5,0 | 100 | 12,5 | 42,2 | 88,7 | inteligencia 1,5 · administración 1,2 · combate 1 · elocuencia 1,25 |
+| Secretary | 10,2 | 40 | 25,3 | 40,4 | 85,2 | inteligencia 1,5 · administración 1,5 · elocuencia 2 |
+
+Más abajo, con menos de 35 a nivel máximo: Scribe (oficio), Haruspex, Cobbler, Clerk (oficio), Blacksmith, Weaver, Victimarii, Shepherd, Wet Nurse, Farm Hand y Laborer. 33 de los 90 trabajos pagan dinero; los cargos dan prestigio e influencia (ver abajo).
+
+- *Judge* y los funcionarios pagan mucho **desde el principio** (a nivel 20, *Judge* es el segundo), pero se quedan en el nivel 50.
+- *Bestiarius*, *Theater Performer* y *Barber* tienen sueldo base bajísimo y niveles máximos enormes: solo rinden a niveles muy altos. *Theater Performer* además **resta** prestigio e influencia.
+- *Physician* es el tercero y además protege la salud de la familia (ver abajo).
+
+## Subir de nivel `[904c]`
+
+En cada comprobación, el nivel sube en 1 con probabilidad:
+
+```
+(1 + inteligencia/5) / 13 / 5 / (nivel/5, mínimo 1) × multiplicador_sin_modificadores / 3
+```
+
+- `multiplicador_sin_modificadores` es el de arriba sin `job_<oficio>` ni el de ingresos: rasgos y habilidades del oficio.
+- **Cada nivel cuesta más que el anterior** (la probabilidad baja en proporción al nivel), así que llegar a 200 o 300 lleva muchísimo tiempo. La **inteligencia** y las habilidades del oficio lo aceleran mucho. *Ambitious* ×1,25; *Content* ÷1,25.
+- Al llegar al nivel máximo (si es 10 o más) se consigue el logro `topBoss`.
+- La función que fija el nivel lo limita a `[0, nivel_máx]` `[6cf7]`. En el trainer: Familia → Nivel trabajo → **Máx**.
 
 ## Magistraturas y cargos: prestigio e influencia
 
