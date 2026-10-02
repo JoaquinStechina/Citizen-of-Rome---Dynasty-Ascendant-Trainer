@@ -56,6 +56,10 @@ Todos los valores se pueden escribir a mano (Enter aplica, Esc cancela) o cambia
 
 Idioma, posición, tamaño, orden y lo que esté plegado se recuerdan entre sesiones.
 
+## Mecánicas del juego
+
+La carpeta [`docs/`](docs/README.md) reúne lo descubierto en el código del juego: educación, trabajos, mascotas, propiedades, logros y mecánicas generales (clases, costos, fórmulas).
+
 ## Estructura del código
 
 ```
@@ -75,6 +79,7 @@ src/
    ├─ index.js         lista y orden por defecto de las secciones
    └─ resources.js, family.js, pets.js, estate.js, multipliers.js, achievements.js
 locales/               un JSON de textos por idioma (es, pt, en, ru, fr, de)
+docs/                  mecánicas del juego descubiertas en su código
 ```
 
 El código de `src/` **se ejecuta dentro del juego**, no en Node. `trainer.mjs` lo junta en un solo script con un cargador mínimo tipo CommonJS:
