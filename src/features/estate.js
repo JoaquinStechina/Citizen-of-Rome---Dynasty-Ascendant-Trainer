@@ -25,8 +25,7 @@ module.exports = {
     for (const g of GROUPS) {
       const keys = (PROPS.groups[g]?.properties || []).filter(k => PROPS.types[k])
       if (!keys.length) continue
-      const col = el('div', 'min-width:0', propGrid)
-      ui.subheading(col, PROPS.groupTitles[g] || g)
+      const col = ui.group(el('div', 'min-width:0', propGrid), PROPS.groupTitles[g] || g, 'estate.' + g)
       for (const k of keys) ui.addRow({
         label: PROPS.titles[k]?.title || k, wide: true,
         tip: (PROPS.titles[k]?.title || k) + (PROPS.titles[k]?.units ? ' (' + PROPS.titles[k].units + ')' : ''),

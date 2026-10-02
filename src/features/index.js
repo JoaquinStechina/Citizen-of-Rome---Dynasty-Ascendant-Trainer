@@ -6,4 +6,5 @@ module.exports = [
   require('features/pets'),
   require('features/estate'),
   require('features/multipliers'),
+  require('features/achievements'),
 ]

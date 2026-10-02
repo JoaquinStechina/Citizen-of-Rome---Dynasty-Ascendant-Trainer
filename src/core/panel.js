@@ -106,7 +106,15 @@ function build() {
   title.textContent = '⠿ Trainer'
   const hint = el('span', 'font-size:11px;opacity:.7', titleLine)
   hint.textContent = t('hideHint')
-  const reset = el('button', 'background:none;border:none;color:#e0c07a;cursor:pointer;padding:0 2px;font-size:14px', titleLine)
+  const ICON_BTN = 'background:none;border:none;color:#e0c07a;cursor:pointer;padding:0 2px;font-size:14px'
+  // Plegar / desplegar todas las secciones y bloques a la vez.
+  for (const [icon, tip, folded] of [['⊟', 'collapseAll', true], ['⊞', 'expandAll', false]]) {
+    const b = el('button', ICON_BTN, titleLine)
+    b.textContent = icon
+    b.title = t(tip)
+    b.onclick = () => ui.collapsibles.forEach(c => c.set(folded))
+  }
+  const reset = el('button', ICON_BTN, titleLine)
   reset.textContent = '↺'
   reset.title = t('resetLayout')
   reset.onclick = () => { ls.set('corTrainerLayout', {}); ls.set('corTrainerOrder', null); build() }
@@ -181,8 +189,10 @@ function build() {
     arrow('▼', t('moveDown'), 1)
     const body = el('div', '', card)
     const paint = () => { name.textContent = (collapsed[id] ? '▸ ' : '▾ ') + t(id); body.style.display = collapsed[id] ? 'none' : '' }
-    name.onclick = () => { collapsed[id] = !collapsed[id]; ls.set('corTrainerCollapsedV2', collapsed); paint() }
+    const setCollapsed = v => { collapsed[id] = v; ls.set('corTrainerCollapsedV2', collapsed); paint() }
+    name.onclick = () => setCollapsed(!collapsed[id])
     paint()
+    ui.collapsibles.push({ set: setCollapsed, get: () => !!collapsed[id] })
     head.addEventListener('dragstart', e => { dragging = id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', id); card.style.opacity = '.5' })
     head.addEventListener('dragend', () => { dragging = null; card.style.opacity = ''; Object.values(cards).forEach(c => { c.style.background = '' }) })
     card.addEventListener('dragover', e => { if (dragging && dragging !== id) { e.preventDefault(); card.style.background = 'rgba(224,192,122,.12)' } })

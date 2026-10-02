@@ -3,7 +3,11 @@
 // ui.refresh() (llamado cada 500 ms y tras cada acción) actualiza lo que se ve.
 const { CTRL_CSS, el, fmt } = require('core/dom')
 const { t } = require('core/i18n')
+const ls = require('core/storage')
 const game = require('game')
+
+// Bloques plegados dentro de las secciones: { 'family.traits': true, … }.
+const GROUPS_KEY = 'corTrainerGroups'
 
 // Orden y nombres de los grupos de rasgos en los desplegables.
 const GROUP_ORDER = ['education', 'personality', 'good', 'bad', 'goodGenetic', 'badGenetic', 'neutralGenetic', 'skill', 'militaryHonor', 'neutral']
@@ -51,6 +55,25 @@ function createUI() {
 
   ui.note = (parent, text) => { const n = el('div', 'font-size:11px;opacity:.7;margin-top:3px', parent); n.textContent = text; return n }
   ui.subheading = (parent, text) => { const h = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600', parent); h.textContent = text }
+
+  // Todo lo plegable del panel (secciones y bloques): { set(plegado), get() }.
+  // Lo usan los botones de la cabecera "plegar todo" / "desplegar todo".
+  ui.collapsibles = []
+
+  // Bloque plegable dentro de una sección: clic en el título para abrir/cerrar.
+  // `key` identifica el bloque para recordar si está plegado (p. ej. 'family.traits').
+  // Devuelve el contenedor donde poner el contenido; su título es body.previousSibling.
+  const groupState = ls.get(GROUPS_KEY, {})
+  ui.group = (parent, text, key) => {
+    const head = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600;cursor:pointer', parent)
+    const body = el('div', '', parent)
+    const paint = () => { head.textContent = (groupState[key] ? '▸ ' : '▾ ') + text; body.style.display = groupState[key] ? 'none' : '' }
+    const set = v => { groupState[key] = v; ls.set(GROUPS_KEY, groupState); paint() }
+    head.onclick = () => set(!groupState[key])
+    paint()
+    ui.collapsibles.push({ set, get: () => !!groupState[key] })
+    return body
+  }
 
   // Fila: etiqueta, campo editable (Enter o salir del campo = aplicar) y botones +N.
   //   c = { label, get(), set(v), steps: [n, …] }

@@ -40,6 +40,7 @@ Si el juego recarga la página, el trainer vuelve a inyectar el panel automátic
 | **Mascotas** | Edad, aptitud, vigor, docilidad y rasgos de cada mascota |
 | **Propiedades de la casa** | Las 22 propiedades, con su límite administrable |
 | **Multiplicadores** | Factor propio del trainer para salud, ingresos, fertilidad, gastos, trabajos, propiedades, etc. |
+| **Logros** | Marcar o quitar logros conseguidos (global y en la partida actual), con buscador y filtro. Solo dentro del juego: no se envía nada a Steam |
 
 Todos los valores se pueden escribir a mano (Enter aplica, Esc cancela) o cambiar con botones rápidos.
 
@@ -49,9 +50,11 @@ Todos los valores se pueden escribir a mano (Enter aplica, Esc cancela) o cambia
 - **Mover:** se arrastra desde el título.
 - **Redimensionar:** desde cualquier borde o esquina.
 - **Secciones:** se pliegan con un clic en su nombre y se reordenan arrastrando la cabecera o con ▲▼. Si el panel es ancho, las secciones se reparten en columnas.
+- **Bloques:** dentro de las secciones, los bloques (rasgos, grupos de propiedades, grupos de logros, multiplicadores activos) también se pliegan con un clic en su título.
+- **⊟ / ⊞** pliegan o despliegan todas las secciones y bloques a la vez.
 - **↺** restablece posición, tamaño y orden.
 
-Idioma, posición, tamaño, orden y secciones plegadas se recuerdan entre sesiones.
+Idioma, posición, tamaño, orden y lo que esté plegado se recuerdan entre sesiones.
 
 ## Estructura del código
 
@@ -70,7 +73,7 @@ src/
 │  └─ dom.js           el(), fmt(), estilos comunes
 └─ features/           una sección del panel por archivo
    ├─ index.js         lista y orden por defecto de las secciones
-   └─ resources.js, family.js, pets.js, estate.js, multipliers.js
+   └─ resources.js, family.js, pets.js, estate.js, multipliers.js, achievements.js
 locales/               un JSON de textos por idioma (es, pt, en, ru, fr, de)
 ```
 
@@ -107,7 +110,7 @@ No hay paso de compilación: el script se arma de nuevo en cada inyección.
 3. Añade sus textos (al menos `"ejemplo": "Título"`) en cada `locales/*.json`.
 4. Con `node trainer.mjs --dev` corriendo, verás la sección al guardar.
 
-Piezas disponibles en `ui` (ver `src/core/ui.js`): `addRow` (fila numérica con botones, nota, colores…), `ageRow`, `traitEditor`, `select`, `rosterSelect`, `button`, `note`, `subheading` y `onRefresh` (función que se ejecuta cada 500 ms). La selección de personaje o mascota está en `core/selection` (`sel.character()`, `sel.pet()`).
+Piezas disponibles en `ui` (ver `src/core/ui.js`): `addRow` (fila numérica con botones, nota, colores…), `ageRow`, `traitEditor`, `select`, `rosterSelect`, `button`, `note`, `subheading`, `group` (bloque plegable que se recuerda por una clave, p. ej. `ui.group(body, t('traits'), 'ejemplo.rasgos')`) y `onRefresh` (función que se ejecuta cada 500 ms). La selección de personaje o mascota está en `core/selection` (`sel.character()`, `sel.pet()`).
 
 Si una sección lanza un error al construirse, el resto del panel sigue funcionando y esa sección muestra "No disponible".
 
@@ -129,5 +132,6 @@ Los identificadores internos del juego (`'50ab'`, `'a822'`, `'fc68'`…) están 
 - **Edad:** el juego la calcula a partir de la fecha de nacimiento (calendario de 13 meses); el trainer mueve el año de nacimiento. Envejecer mucho a alguien aumenta su probabilidad de morir.
 - **Propiedades:** por encima de 1,2× el límite administrable, el juego puede provocar robos o enfermedades que te quitan parte. Se añaden gratis, sin descontar dinero.
 - **Multiplicadores:** el factor del trainer es permanente, se guarda con la partida y se multiplica con los del juego. En "Gastos" conviene un factor menor que 1.
+- **Logros:** la casilla "Conseguido" cambia la lista global del juego (la de su pantalla de logros, guardada al momento en `localStorage.core`); "En esta partida" se guarda con la partida. No se usa la función del juego que además los desbloquea en Steam, porque los logros de Steam no se pueden quitar. Algunos logros aparecen en dos grupos (así los agrupa el juego) y se cuentan una vez.
 - **Guarda la partida** después de hacer cambios para que se conserven.
 - Probado con la versión 1.6.36 del juego.

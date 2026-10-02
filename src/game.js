@@ -87,6 +87,48 @@ const MODS = load('multiplicadores', req => ({
   propTypes: req('08e5').default.types, propTitles: req('5785').default.types || {},
 }))
 
+// Logros: lista, grupos y nombres. Los conseguidos están en state.achievements
+// (global, el juego lo guarda en localStorage.core) y los de la partida actual en
+// current.flagAchievementsThisRun (se guarda con la partida).
+const ACH = load('logros', req => {
+  const D = req('06d5').a, L = req('a550').default
+  return { list: D.list, groups: D.groups, titles: typeof L === 'function' ? L() : L }
+})
+
+// Marca o desmarca logros como conseguidos SOLO dentro del juego. No se usa la
+// acción addAchievement del juego porque además los desbloquea en Steam, y los
+// logros de Steam no se pueden quitar.
+const setAchievements = (ids, on) => {
+  const list = S().achievements
+  for (const id of ids) {
+    const i = list.indexOf(id)
+    if (on && i < 0) list.push(id)
+    if (!on && i >= 0) list.splice(i, 1)
+  }
+  // Se guarda como hace el juego al guardar partida, pero solo la lista de logros.
+  try {
+    const core = JSON.parse(localStorage.core || '{}')
+    core.achievements = [...list]
+    localStorage.core = JSON.stringify(core)
+  } catch (e) { console.warn('[trainer] no se pudo guardar la lista de logros', e) }
+}
+
+// Marca o desmarca un logro como conseguido en la partida actual.
+const setAchievementThisRun = (id, on) => {
+  const c = S().current
+  if (!c.flagAchievementsThisRun) setReactive(c, 'flagAchievementsThisRun', [])
+  if (!c.flagAchievementsThisRunCount) setReactive(c, 'flagAchievementsThisRunCount', {})
+  const list = c.flagAchievementsThisRun, i = list.indexOf(id)
+  if (on && i < 0) {
+    list.push(id)
+    setReactive(c.flagAchievementsThisRunCount, id, Math.max(1, c.flagAchievementsThisRunCount[id] || 0))
+  }
+  if (!on && i >= 0) {
+    list.splice(i, 1)
+    store()._vm.$delete(c.flagAchievementsThisRunCount, id)
+  }
+}
+
 // Edad actual en años de un personaje o mascota.
 const ageOf = x => AGE ? AGE(S(), x.birthMonth, x.birthYear) : S().year - x.birthYear
 
@@ -95,5 +137,6 @@ const SKILL_MAX = 30
 
 module.exports = {
   store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf,
-  TR, AGE, JOBS, PETS, PROPS, MODS, SKILL_MAX,
+  setAchievements, setAchievementThisRun,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, SKILL_MAX,
 }

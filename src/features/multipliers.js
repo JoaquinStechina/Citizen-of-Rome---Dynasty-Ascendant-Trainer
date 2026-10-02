@@ -73,9 +73,9 @@ module.exports = {
     ui.note(body, t('modNote'))
 
     // Lista de multiplicadores distintos de ×1 (clic = editarlo arriba).
-    ui.subheading(body, t('activeNow'))
-    const active = el('div', 'font-size:12px;margin-top:2px', body)
-    const clearAll = el('div', 'display:flex;justify-content:flex-end;margin-top:4px', body)
+    const activeBox = ui.group(body, t('activeNow'), 'multipliers.active')
+    const active = el('div', 'font-size:12px;margin-top:2px', activeBox)
+    const clearAll = el('div', 'display:flex;justify-content:flex-end;margin-top:4px', activeBox)
     ui.button(clearAll, t('removeAll'), () => {
       for (const key of Object.keys(S().current.modifiers || {})) MODS.remove(key, TRAINER_MOD_ID)
     })
@@ -101,6 +101,6 @@ module.exports = {
         val.textContent = '×' + fmt(v)
       }
     })
-    ui.note(body, t('legend'))
+    ui.note(activeBox, t('legend'))
   },
 }

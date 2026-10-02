@@ -31,8 +31,8 @@ module.exports = {
     ui.button(petBulk, t('allTo') + ' ' + SKILL_MAX, () => { const p = selectedPet(); if (p) for (const k of PET_SKILLS) p.skills[k] = SKILL_MAX })
     ui.button(petBulk, t('petsAllTo') + ' ' + SKILL_MAX, () => game.householdPets().forEach(p => { for (const k of PET_SKILLS) p.skills[k] = SKILL_MAX }))
 
-    ui.subheading(body, t('petTraits'))
-    ui.traitEditor(body, {
+    const traitsBox = ui.group(body, t('petTraits'), 'pets.traits')
+    ui.traitEditor(traitsBox, {
       available: !!PETS, entity: selectedPet, list: () => PETS.traitList,
       title: id => PETS.traitTitles[id]?.title || id, describe: id => PETS.traitTitles[id]?.description || '',
       add: (p, id) => PETS.add(p, id), remove: (p, id) => PETS.remove(p, id),

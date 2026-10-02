@@ -46,8 +46,8 @@ module.exports = {
       },
     }, body)
 
-    ui.subheading(body, t('traits'))
-    ui.traitEditor(body, {
+    const traitsBox = ui.group(body, t('traits'), 'family.traits')
+    ui.traitEditor(traitsBox, {
       available: !!TR, entity: selected, list: () => TR.list,
       title: id => TR.titles[id]?.title || id, describe: id => TR.titles[id]?.description || '',
       add: (ch, id) => {
