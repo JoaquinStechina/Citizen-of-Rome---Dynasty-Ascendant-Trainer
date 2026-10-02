@@ -63,25 +63,44 @@ Más: [Propiedades](propiedades.md).
 
 ## Tablas
 
-### Trabajos
+### Oficios y personalidades
 
-| Oficio | Nivel máx. | Sueldo a nivel 20 | Sueldo a nivel máx. | Mejor personalidad | Con ella |
-|---|---|---|---|---|---|
-| Lawyer | 200 | 49,8 | **317,7** | Sly ×1,4 | **445** |
-| Bestiarius | 625 | 6,5 | 123,1 | Stubborn ×2,7 | 332 |
-| Philosophy Tutor | 125 | 40,5 | 167,4 | Charitable ×1,6 | 268 |
-| Theater Performer¹ | 500 | 6,9 | 106,1 | Rude ×2,5 | 265 |
-| Barber | 500 | 6,2 | 95,5 | Gregarious ×2,7 | 258 |
-| Rhetor | 125 | 37,9 | 156,5 | Erudite ×1,5 | 235 |
-| Physician | 150 | 38,9 | 190,1 | Honorable ×1,2 | 228 |
-| Painter | 250 | 15,6 | 122,5 | Content ×1,8 | 221 |
-| Figure Painter | 300 | 23,4 | 218,7 | — | 219 |
-| Grammaticus | 125 | 30,3 | 125,2 | Erudite ×1,5 | 188 |
-| Jeweler | 250 | 15,6 | 122,5 | Gregarious ×1,5 | 184 |
-| Judge | 50 | 46,7 | 88,6 | Honorable ×1,7 | 151 |
-| Trader | 150 | 14,0 | 68,4 | Honorable, Ambitious, Competitive ×1,8 | 123 |
+Sueldo de base a nivel máximo, sin habilidades. "Con la mejor": con la mejor personalidad. Los rasgos de la última columna se suman a la personalidad.
 
-¹ Resta prestigio e influencia. Sueldos de base, sin habilidades.
+| Oficio | Nivel máx. | Sueldo | Mejores personalidades | Con la mejor | Evitar | Otros rasgos que ayudan |
+|---|---|---|---|---|---|---|
+| **Lawyer** | 200 | 318 | **Sly ×1,4** · Ambitious ×1,25 · Competitive, Gregarious ×1,1 | **445** | Trusting ×0,4 · Greedy, Stubborn, Honorable, Content ×0,8 · Paranoid ×0,85 | — (Stutter ×0,5, Mute ×0,1) |
+| Bestiarius | 625 | 123 | **Stubborn, Erratic ×2,7** · Competitive ×2,45 · Paranoid ×2,1 | 332 | — | Giant ×2 · Gladiator ×1,7 · Strong ×1,5 |
+| Philosophy Tutor | 125 | 167 | **Charitable ×1,6** · Erudite ×1,5 · Content ×1,1 | 268 | Ambitious ×0,9 | Brilliant ×1,4 |
+| Theater Performer¹ | 500 | 106 | **Rude ×2,5** · Fashionable ×2,25 · Erratic ×2,2 · Ambitious ×2,1 | 265 | Shy ×0,2 · Competitive ×0,7 | Attractive ×1,9 |
+| Barber | 500 | 96 | **Gregarious ×2,7** · Fashionable, Sly ×2,5 | 258 | — | (Strong ×0,3) |
+| Rhetor | 125 | 157 | **Erudite ×1,5** · Gregarious ×1,2 | 235 | Erratic ×0,5 | Brilliant ×1,4 |
+| Figure Painter | 300 | 219 | Erratic ×1,07 | 234 | Stubborn ×0,7 · Gregarious ×0,9 | Brilliant ×1,2 (Strong ×0,7) |
+| Physician | 150 | 190 | **Honorable ×1,2** | 228 | Paranoid ×0,5 · Rude ×0,8 | Philosopher ×1,2 · Brilliant ×1,1 |
+| Painter | 250 | 123 | **Content ×1,8** · Charitable ×1,5 · Erudite ×1,25 | 221 | Stubborn ×0,7 · Erratic ×0,78 · Gregarious ×0,8 | Brilliant ×1,2 |
+| Grammaticus | 125 | 125 | **Erudite ×1,5** · Gregarious ×1,25 · Rude ×1,2 | 188 | Erratic ×0,5 | Brilliant ×1,4 |
+| Jeweller | 250 | 123 | **Gregarious ×1,5** · Honorable ×1,25 · Greedy ×1,2 | 184 | Sly ×0,9 | Marksman ×1,2 |
+| Judge | 50 | 89 | **Honorable ×1,7** · Authoritative ×1,5 · Content ×1,2 | 151 | Greedy ×0,6 · Sly, Trusting, Ambitious ×0,8 | — |
+| Stone Mason | 150 | 61 | **Content ×2,4** · Sly ×1,8 · Stubborn ×1,5 | 146 | Erudite ×0,5 | — |
+| Trader | 150 | 68 | **Honorable, Competitive, Ambitious ×1,8** · Greedy ×1,6 | 123 | Trusting ×0,3 · Rude ×0,5 | — |
+| Haruspex | 125 | 32 | **Mystic ×3,2** · Erratic ×1,77 | 103 | — | — |
+| Litterator | 125 | 68 | **Erudite, Rude ×1,5** · Gregarious ×1,3 | 102 | Erratic ×0,6 | Brilliant ×1,4 |
+| Scribe (oficio) | 50 | 35 | **Honorable ×2,7** · Erudite ×2,1 · Shy ×1,45 | 94 | — | — |
+| Carpenter | 100 | 42 | **Content ×2,1** · Trusting ×1,8 | 89 | — | Strong ×1,13 |
+| Cobbler | 50 | 30 | **Trusting ×2,7** | 80 | Erudite ×0,5 | — |
+| Scribe (funcionario) | 50 | 74 | ninguna lo cambia | 74 | — | — |
+| Lictor (funcionario) | 50 | 59 | Authoritative, Paranoid ×1,2 | 71 | — | — |
+| Clerk (funcionario) | 50 | 68 | ninguna lo cambia | 68 | — | — |
+| Secretary | 40 | 40 | **Sly, Trusting ×1,5** · Fashionable ×1,1 | 61 | — | — |
+| Herald (funcionario) | 50 | 50 | Authoritative ×1,2 | 60 | Shy ×0,9 | Attractive ×1,25 |
+| Clerk (oficio) | 25 | 25 | **Rude ×2** · Stubborn ×1,6 | 50 | — | — |
+| Weaver | 50 | 21 | **Fashionable ×2,1** | 43 | — | (Strong ×0,6) |
+| Victimarii | 50 | 15 | **Authoritative ×2,8** · Mystic ×2,7 | 42 | — | — |
+| Blacksmith | 50 | 24 | Ambitious ×1,5 | 35 | — | Gladiator, Veteran ×1,8 · Short-Statured ×1,75 |
+| Shepherd | 50 | 12 | **Charitable, Paranoid ×2,7** | 32 | — | Horse Rider ×1,6 |
+| Farm Hand | 25 | 7 | **Shy ×2,7** · Content ×2,1 | 19 | — | Strong ×1,62 |
+
+¹ Resta prestigio e influencia.
 
 ### Cargos (por mes; se suman los de toda la casa)
 
