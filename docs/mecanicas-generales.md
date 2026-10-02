@@ -48,7 +48,7 @@ Se aplica a pagos y recompensas de eventos (`applyStatChanges` `[2ee0]`). **No**
 Cuatro habilidades: **inteligencia, administración (stewardship), elocuencia y combate**.
 
 - **No hay un tope fijo**, pero muchas fórmulas se saturan hacia 27–30 (por ejemplo, las pruebas de banquete: `100 × (0,45 + habilidad/50)`, máx. 99%).
-- Para subir una habilidad, el juego compara `aleatorio + habilidad_actual/45` contra la velocidad de aprendizaje: **cuanto más alta, más cuesta subirla**, y hay un punto en que la probabilidad es 0. Ver [Educación](educacion.md#velocidad-de-aprendizaje).
+- Para subir una habilidad, el juego compara `aleatorio + habilidad_propia/45` (sin los bonus de rasgos) contra la velocidad de aprendizaje: **cuanto más alta, más cuesta subirla**, y hay un punto en que la probabilidad es 0. Ver [Educación](educacion.md#velocidad-de-aprendizaje).
 - La administración de los miembros de la casa sube el **límite de propiedades** administrables. `[20e3]`
 
 ## Rasgos

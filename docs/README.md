@@ -14,6 +14,7 @@ Notas sobre cómo funciona el juego por dentro, sacadas de su código (versión 
 
 | Documento | Contenido |
 |---|---|
+| [Estrategia](estrategia.md) | Cómo jugar para tener personajes con habilidades altas y una familia rica: pareja y genética, educación, personalidad y oficios, dinero, herencia, salud |
 | [Mecánicas generales](mecanicas-generales.md) | Clase social, escalado de costos, calendario y edad, habilidades, rasgos, multiplicadores, guardado |
 | [Educación](educacion.md) | Etapas (ludus, grammaticus, rhetor, filosofía, aprendiz), opciones y costos, velocidad de aprendizaje, inteligencia, retórica judicial o deliberativa |
 | [Trabajos](trabajos.md) | Oficios mejor pagados, magistraturas, qué oficios benefician a la familia, médico en casa, bonus por oficio compartido, reclutamiento |

@@ -85,7 +85,7 @@ sube combate        si  aleatorio + combate/45        < velocidad / 2
 sube inteligencia   si  aleatorio + inteligencia/45   < velocidad / 3
 ```
 
-(La habilidad que se compara es la efectiva, con los bonus de rasgos `[a396]`.)
+(La habilidad que se compara es la propia, **sin** los bonus de rasgos `[a396]`: los títulos, *Strong*, etc. no frenan el aprendizaje. Los bonus sí se guardan sumados en `skills`, porque `addTrait` `[a822]` los suma al añadir el rasgo; `[a396]` los resta para obtener la habilidad propia.)
 
 Consecuencias:
 

@@ -54,5 +54,6 @@ Más detalles en [Avisos](docs/avisos.md).
 
 - [Guía del trainer](docs/guia.md): cada sección del panel en detalle y problemas frecuentes.
 - [Avisos](docs/avisos.md): puerto de depuración, logros de Steam y copias de seguridad.
+- [Estrategia](docs/estrategia.md): cómo jugar para tener herederos con habilidades altas y una familia rica, según el código del juego.
 - [Mecánicas del juego](docs/README.md): cómo funciona el juego por dentro (educación, trabajos, mascotas, eventos militares…).
 - [Desarrollo](docs/desarrollo.md): cómo está hecho el trainer y cómo añadir secciones o idiomas.
