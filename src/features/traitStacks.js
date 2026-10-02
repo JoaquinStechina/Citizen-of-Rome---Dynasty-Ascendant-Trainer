@@ -6,6 +6,7 @@ const { CTRL_CSS, el, fmt } = require('core/dom')
 const { t } = require('core/i18n')
 const game = require('game')
 const sel = require('core/selection')
+const ach = require('core/achievements')
 
 const SKILLS = ['intelligence', 'stewardship', 'eloquence', 'combat']
 
@@ -32,7 +33,7 @@ module.exports = {
     const list = el('div', '', body)
     const addLine = el('div', 'display:flex;gap:4px;margin-top:6px', body)
     const addPick = el('select', CTRL_CSS + ';flex:1;min-width:0;padding:2px', addLine)
-    ui.button(addLine, t('add'), () => { const ch = selected(); if (ch && addPick.value) TR.setStacks(ch, addPick.value, 1) }, t('addTip'))
+    ui.button(addLine, t('add'), () => { const ch = selected(); if (ch && addPick.value) { TR.setStacks(ch, addPick.value, 1); ach.grant([addPick.value]) } }, t('addTip'))
     ui.note(body, t('stackNote'))
 
     // Las filas se rehacen cuando cambia el personaje o sus rasgos acumulables;

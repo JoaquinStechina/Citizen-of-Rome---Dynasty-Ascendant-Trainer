@@ -86,3 +86,12 @@ prestigio   × ingresos / 10       (si el evento lo pide)   × factor de clase
 La sección **Eventos militares** muestra cada árbol con la probabilidad y los efectos de cada opción, ya escalados para tu partida, y marca con ★ la recomendada.
 
 La recomendada es la de menos riesgo de morir; a igual riesgo, la de más corona, menos heridas y más prestigio e influencia. Cuando hay un camino con más probabilidad de corona, aparece además una línea "A por la corona". Los datos están en `src/war/events.js`.
+
+### Forzar el resultado
+
+El juego decide el azar de un paso en el mismo momento en que se pulsa la opción que lleva a él: el método del evento se ejecuta de forma síncrona (`processInteractionModalAction` `[8be1]` → `[bc91]`) y llama a `Math.random()` una o dos veces. En el consejo, cada opción que lleva a un paso con azar tiene botones **🎲 Forzar**, uno por resultado posible (por ejemplo, "☠ muerte" o "👑 Corona Civica"). Al pulsar uno, el trainer elige esa opción en el juego con las tiradas fijadas para ese resultado; las llamadas siguientes a `Math.random()` vuelven a ser al azar.
+
+- Las tiradas de cada rama están en `roll` dentro de `src/war/events.js`, una por cada llamada que hace el método.
+- Se comprobaron ejecutando el código real de cada evento con un estado simulado: las 37 ramas salen como se espera y usan exactamente esas tiradas.
+- Todo lo demás lo hace el juego: muerte, heridas, premios y logros, que se desbloquean también en Steam como si hubiera salido por suerte.
+- En la Corona de Hierba, los resultados posibles dependen de las habilidades del personaje. Con habilidades altas, la derrota no es posible y no aparece.

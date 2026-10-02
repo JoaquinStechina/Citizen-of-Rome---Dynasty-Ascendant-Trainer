@@ -16,9 +16,13 @@
 //            guerra), endTerm (termina tu servicio militar), exile.
 //   options  la ventana siguiente: [{ text, to, st }]; `to` es el paso al que
 //            lleva (nada = sin consecuencias) y `st` lo que cambia al pulsarla.
+//   roll     en los pasos con azar, los valores que tiene que devolver Math.random
+//            (en orden, uno por llamada del método del juego) para que salga
+//            esta rama. Lo usa "forzar resultado" del consejo (game.chooseOption).
 
 const SCALED = ['prestige', 'influence']
 const ALL = ['prestige', 'influence', 'cash']
+const HI = 0.9999 // tirada alta (las comparaciones del juego son > 0,x o < 0,x)
 
 // Heridas que dependen de las que ya se tienen.
 const leg = ch => ch?.traits?.includes('noLeg') ? [] : ch?.traits?.includes('oneLeg') ? ['noLeg'] : ['oneLeg'] // con noLeg el juego intenta 'severlyMangled', que no existe
@@ -34,8 +38,8 @@ const EVENTS = {
     start: [{ text: 'To each their own' }, { text: 'Assist them!', to: 'assist' }],
     steps: {
       assist: [{ options: [{ text: 'Stand my ground', to: 'stand' }, { text: 'Let the fellow soldier die a martyr', to: 'die' }] }],
-      stand: [{ p: 0.3, options: [{ text: 'I have done my best', to: 'vGood' }] }, { p: 0.7, death: true }],
-      vGood: [{ p: 0.3, crown: 'coronaCivica', endWar: true }, { p: 0.7, endWar: true }],
+      stand: [{ p: 0.3, roll: [0], options: [{ text: 'I have done my best', to: 'vGood' }] }, { p: 0.7, roll: [HI, HI], death: true }],
+      vGood: [{ p: 0.3, roll: [0], crown: 'coronaCivica', endWar: true }, { p: 0.7, roll: [HI], endWar: true }],
       die: [{ traits: ['depression'] }],
     },
   },
@@ -56,8 +60,8 @@ const EVENTS = {
       betterEnd: [{ pr: -2000, inf: -1500, traits: leg, endTerm: true }],
       dig: [{ options: [{ text: 'Go ahead with the heavy artillery', to: 'ahead' }, { text: 'Perhaps heavy artillery is too risky', to: 'risky' }] }],
       ahead: [
-        { p: 0.5, pr: 2500, inf: 2800, crown: 'coronaRostrata', traits: hand, endTerm: true },
-        { p: 0.5, pr: -2000, inf: -1500, traits: hand, endTerm: true },
+        { p: 0.5, roll: [HI], pr: 2500, inf: 2800, crown: 'coronaRostrata', traits: hand, endTerm: true },
+        { p: 0.5, roll: [0], pr: -2000, inf: -1500, traits: hand, endTerm: true },
       ],
       risky: [{ pr: -2000, inf: -1500, traits: ['mangled'], endTerm: true }],
     },
@@ -73,15 +77,15 @@ const EVENTS = {
       volunteer: [{ options: [{ text: 'Stay here and fight', to: 'fight' }, { text: 'Report and get reinforcements', to: 'report' }] }],
       stay: [{ options: [{ text: 'Not my place to decide, must wait for further orders', to: 'wait' }, { text: 'Destroy their camps!', to: 'camp' }] }],
       fight: [
-        { p: 0.5, options: [{ text: 'Not my place to decide, must wait for further orders', to: 'wait' }, { text: 'Destroy their camps!', to: 'camp' }] },
-        { p: 0.5, death: true, pr: 900, inf: 800 },
+        { p: 0.5, roll: [HI], options: [{ text: 'Not my place to decide, must wait for further orders', to: 'wait' }, { text: 'Destroy their camps!', to: 'camp' }] },
+        { p: 0.5, roll: [0], death: true, pr: 900, inf: 800 },
       ],
       report: [
-        { p: 0.5, options: [{ text: 'Not my place to decide, must wait for further orders', to: 'wait' }, { text: 'Destroy their camps!', to: 'camp' }] },
-        { p: 0.5, death: true, pr: 900, inf: 800 },
+        { p: 0.5, roll: [HI], options: [{ text: 'Not my place to decide, must wait for further orders', to: 'wait' }, { text: 'Destroy their camps!', to: 'camp' }] },
+        { p: 0.5, roll: [0], death: true, pr: 900, inf: 800 },
       ],
       wait: [{ pr: 1200, inf: 1400 }],
-      camp: [{ p: 0.5, crown: 'coronaCastrensis', pr: 2500, inf: 2000, endWar: true }, { p: 0.5, pr: 2000, inf: 1500, endWar: true }],
+      camp: [{ p: 0.5, roll: [HI], crown: 'coronaCastrensis', pr: 2500, inf: 2000, endWar: true }, { p: 0.5, roll: [0], pr: 2000, inf: 1500, endWar: true }],
       survey: [{ options: [{ text: 'Can’t rush into battle unprepared', to: 'no' }, { text: 'Send reinforcement immediately', to: 'reinfo' }] }],
       no: [{ pr: -3000, inf: -1500 }],
       reinfo: [{ options: [{ text: 'Attack the enemy camps!', to: 'attack' }, { text: 'Ignore the enemy camps', to: 'ignore' }] }],
@@ -94,14 +98,14 @@ const EVENTS = {
     who: 'soldier', title: 'At War: Seige', crown: 'coronaMuralis',
     start: [{ text: 'I cannot leave them behind', to: 'friend' }, { text: 'I will burn incense for them if I survive this battle', to: 'nofriend' }],
     steps: {
-      friend: [{ p: 0.7, death: true }, { p: 0.3, options: [{ text: 'I did the best I could', to: 'nofriend' }] }],
+      friend: [{ p: 0.7, roll: [HI], death: true }, { p: 0.3, roll: [0], options: [{ text: 'I did the best I could', to: 'nofriend' }] }],
       nofriend: [
-        { p: 0.5, options: [{ text: 'This is not how I planned to enter the city walls', to: 'slave' }] },
-        { p: 0.5, options: [{ text: 'Escape with them definitely', to: 'escape' }, { text: 'I cannot run away like this with no honor', to: 'slave' }] },
+        { p: 0.5, roll: [HI], options: [{ text: 'This is not how I planned to enter the city walls', to: 'slave' }] },
+        { p: 0.5, roll: [0], options: [{ text: 'Escape with them definitely', to: 'escape' }, { text: 'I cannot run away like this with no honor', to: 'slave' }] },
       ],
       escape: [{}],
       slave: [{ options: [{ text: 'Strangle the guard and escape', to: 'strangle' }, { text: 'Carefully sneak past the gaurd', to: 'sneak' }] }],
-      strangle: [{ p: 0.9, options: [{ text: "I wish I could've saved the other soldiers as well", to: 'next' }] }, { p: 0.1, death: true }],
+      strangle: [{ p: 0.9, roll: [HI], options: [{ text: "I wish I could've saved the other soldiers as well", to: 'next' }] }, { p: 0.1, roll: [0], death: true }],
       sneak: [{ death: true }],
       next: [{ options: [
         { text: 'Agree to the treaty for now and take down the city once backup arrives', to: 'agree' },
@@ -122,7 +126,7 @@ const EVENTS = {
       ] }],
       last: [{ options: [{ text: 'Bring back the corpses home', to: 'bring' }, { text: 'Let them hang. What good are rotting corpses', to: 'hang' }] }],
       bring: [{ traits: ['depression'], pr: 750, inf: 700, endWar: true }],
-      hang: [{ p: 0.3, crown: 'coronaMuralis', pr: 2150, inf: 2700, endWar: true }, { p: 0.7, pr: 750, inf: 700, endWar: true }],
+      hang: [{ p: 0.3, roll: [HI], crown: 'coronaMuralis', pr: 2150, inf: 2700, endWar: true }, { p: 0.7, roll: [0], pr: 750, inf: 700, endWar: true }],
     },
   },
 
@@ -145,7 +149,7 @@ const EVENTS = {
         { text: 'How dare they! Engage in battle now', to: 'now' },
         { text: 'Join the weaker looking army to drive out the leading army', to: 'join' },
       ] }],
-      wait: [{ p: 0.4, crown: 'coronaObsidimalis', pr: 3250, inf: 3000 }, { p: 0.6, death: true }],
+      wait: [{ p: 0.4, roll: [HI], crown: 'coronaObsidimalis', pr: 3250, inf: 3000 }, { p: 0.6, roll: [0, 0], death: true }],
       now: [{ death: true }],
       join: [{ death: true }],
     },
@@ -163,14 +167,15 @@ const EVENTS = {
         { text: "We'll take them headon. Charge at the enemy!", to: 'result:charge' },
         { text: "We'll attack them from all sides. Split our troops!", to: 'result:split' },
       ] }],
-      // Éxito si aleatorio + (habilidades)/100 > 0,8 (Strong lo asegura al cargar).
+      // Éxito si aleatorio + (habilidades)/100 > 0,8 (Strong lo asegura al cargar). El juego
+      // tira dos veces (una para cargar y otra para dividir) antes de mirar cuál elegiste.
       'result:charge': [
-        { p: ch => has(ch, 'strong') ? 1 : clamp(0.2 + (sk(ch, 'combat') + sk(ch, 'eloquence')) / 100), options: [{ text: 'No one can best the Roman army!', to: 'outcome:victory' }] },
-        { p: ch => has(ch, 'strong') ? 0 : 1 - clamp(0.2 + (sk(ch, 'combat') + sk(ch, 'eloquence')) / 100), options: [{ text: 'I will not fail my men!', to: 'probable' }] },
+        { p: ch => has(ch, 'strong') ? 1 : clamp(0.2 + (sk(ch, 'combat') + sk(ch, 'eloquence')) / 100), roll: [HI, HI], options: [{ text: 'No one can best the Roman army!', to: 'outcome:victory' }] },
+        { p: ch => has(ch, 'strong') ? 0 : 1 - clamp(0.2 + (sk(ch, 'combat') + sk(ch, 'eloquence')) / 100), roll: [0, 0], options: [{ text: 'I will not fail my men!', to: 'probable' }] },
       ],
       'result:split': [
-        { p: ch => clamp(0.2 + (sk(ch, 'intelligence') + sk(ch, 'combat')) / 100), options: [{ text: 'It worked!', to: 'outcome:victory' }] },
-        { p: ch => 1 - clamp(0.2 + (sk(ch, 'intelligence') + sk(ch, 'combat')) / 100), options: [{ text: 'I will not fail my men!', to: 'probable' }] },
+        { p: ch => clamp(0.2 + (sk(ch, 'intelligence') + sk(ch, 'combat')) / 100), roll: [HI, HI], options: [{ text: 'It worked!', to: 'outcome:victory' }] },
+        { p: ch => 1 - clamp(0.2 + (sk(ch, 'intelligence') + sk(ch, 'combat')) / 100), roll: [0, 0], options: [{ text: 'I will not fail my men!', to: 'probable' }] },
       ],
       probable: [{ options: [
         { text: 'Keep Fighting! Our fellow Romans need us!', to: 'finalStand' },
@@ -178,22 +183,23 @@ const EVENTS = {
       ] }],
       // Éxito si aleatorio/3 + (combate + elocuencia)/120 > 0,95.
       finalStand: [
-        { p: ch => clamp(1 - 3 * (0.95 - (sk(ch, 'combat') + sk(ch, 'eloquence')) / 120)), options: [{ text: 'No one can best the Roman army!', to: 'outcome:victory' }] },
-        { p: ch => 1 - clamp(1 - 3 * (0.95 - (sk(ch, 'combat') + sk(ch, 'eloquence')) / 120)), options: [
+        { p: ch => clamp(1 - 3 * (0.95 - (sk(ch, 'combat') + sk(ch, 'eloquence')) / 120)), roll: [HI], options: [{ text: 'No one can best the Roman army!', to: 'outcome:victory' }] },
+        { p: ch => 1 - clamp(1 - 3 * (0.95 - (sk(ch, 'combat') + sk(ch, 'eloquence')) / 120)), roll: [0], options: [
           { text: 'I must run and save my life!', to: 'outcome:run' },
           { text: 'I will stand my ground and fight!', to: 'outcome:pSafety' },
         ] },
       ],
+      // outcome tira una vez (resistir) antes de mirar el tipo; huir tira otra.
       'outcome:victory': [{ crown: 'coronaObsidimalis', inf: 100, pr: 100, cash: 500, sc: ALL, endWar: true }],
       'outcome:retreat': [{ inf: -20, pr: -20, endWar: true }],
       'outcome:pSafety': [
-        { p: ch => has(ch, 'strong') ? 1 : clamp(0.2 + sk(ch, 'combat') / 100), traits: ['deserter'], endWar: true,
+        { p: ch => has(ch, 'strong') ? 1 : clamp(0.2 + sk(ch, 'combat') / 100), roll: [HI], traits: ['deserter'], endWar: true,
           options: [{ text: 'I have failed Rome.', to: 'desert', st: { inf: -100, pr: -100, cash: -50, sc: ALL } }] },
-        { p: ch => has(ch, 'strong') ? 0 : 1 - clamp(0.2 + sk(ch, 'combat') / 100), death: true, pr: 100, cash: 50, sc: ['prestige', 'cash'], endWar: true },
+        { p: ch => has(ch, 'strong') ? 0 : 1 - clamp(0.2 + sk(ch, 'combat') / 100), roll: [0], death: true, pr: 100, cash: 50, sc: ['prestige', 'cash'], endWar: true },
       ],
       'outcome:run': [
-        { p: 0.5, endWar: true, options: [{ text: 'I will turn myself in.', to: 'desert' }, { text: 'I will run away and start my life anew.', to: 'abandon' }] },
-        { p: 0.5, death: true, pr: 100, cash: 50, sc: ['prestige', 'cash'], endWar: true },
+        { p: 0.5, roll: [0.5, HI], endWar: true, options: [{ text: 'I will turn myself in.', to: 'desert' }, { text: 'I will run away and start my life anew.', to: 'abandon' }] },
+        { p: 0.5, roll: [0.5, 0], death: true, pr: 100, cash: 50, sc: ['prestige', 'cash'], endWar: true },
       ],
       desert: [{ traits: ['deserter'], inf: -2000, pr: -2000, cash: -500, sc: ALL, exile: true }],
       abandon: [{ death: true, pr: 100, cash: 50, sc: ['prestige', 'cash'] }],
@@ -225,8 +231,8 @@ const EVENTS = {
         { text: 'We are in a bind, agree to reach out to the transfugi', to: 'transfugi' },
       ] }],
       transfugi: [
-        { p: 0.5, options: [{ text: 'Rome can still win', to: 'win' }] },
-        { p: 0.5, options: [
+        { p: 0.5, roll: [HI], options: [{ text: 'Rome can still win', to: 'win' }] },
+        { p: 0.5, roll: [0], options: [
           { text: 'Write to them personally', to: 'write', st: { cash: -6700 } },
           { text: 'Talk to the soldiers to keep up their morale', to: 'talk' },
         ] },
@@ -239,9 +245,9 @@ const EVENTS = {
       resignAsCommander: [{ endTerm: true }],
       defeat: [{ traits: ['depression'], pr: -7500, inf: -5500, endTerm: true }],
       win: [
-        { p: 0.75 * 0.45, traits: ['severelyMangled'], crown: 'coronaTriumphalis', endWar: true },
-        { p: 0.75 * 0.55, traits: ['severelyMangled'], endWar: true },
-        { p: 0.25, crown: 'coronaTriumphalis', endWar: true },
+        { p: 0.75 * 0.45, roll: [0, 0], traits: ['severelyMangled'], crown: 'coronaTriumphalis', endWar: true },
+        { p: 0.75 * 0.55, roll: [0, HI], traits: ['severelyMangled'], endWar: true },
+        { p: 0.25, roll: [HI], crown: 'coronaTriumphalis', endWar: true },
       ],
       'persevere:persevere': [{ traits: ['depression'], endTerm: true }],
       'persevere:deserter': [{ traits: ['depression'], endTerm: true }],

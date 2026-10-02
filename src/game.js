@@ -134,9 +134,9 @@ const ACH = load('logros', req => {
   return { list: D.list, groups: D.groups, titles: typeof L === 'function' ? L() : L }
 })
 
-// Marca o desmarca logros como conseguidos SOLO dentro del juego. No se usa la
-// acción addAchievement del juego porque además los desbloquea en Steam, y los
-// logros de Steam no se pueden quitar.
+// Marca o desmarca logros como conseguidos dentro del juego (para Steam, ver
+// unlockSteam). No se usa la acción addAchievement del juego porque tiene efectos
+// secundarios (cuenta el logro en la partida y a veces quita Stressed/Depressed).
 const setAchievements = (ids, on) => {
   const list = S().achievements
   for (const id of ids) {
@@ -168,6 +168,38 @@ const setAchievementThisRun = (id, on) => {
   }
 }
 
+// Desbloquea logros en Steam con el mismo mensaje que usa addAchievement [c391]:
+// el proceso principal los activa con Steamworks (si ya lo están, no hace nada).
+// Como el juego, no envía nada en modo fácil, sandbox o con mods, ni con los logros
+// desactivados en sus ajustes. Devuelve '' o el motivo ('noSteam', 'apiOff', 'mode').
+// Los logros de Steam no se pueden quitar.
+const steamBlocked = () => {
+  const s = S()
+  if (!window.ipcRenderer?.send) return 'noSteam'
+  if (!s.settings?.enableAPIAchievements) return 'apiOff'
+  if (s.current.flagEasyMode || s.current.flagSandboxMode || s.current.flagUsedMods) return 'mode'
+  return ''
+}
+const unlockSteam = ids => {
+  const why = steamBlocked()
+  if (!why) for (const id of ids) window.ipcRenderer.send('achievementGet', { achievement: id })
+  return why
+}
+
+// Elige la opción `i` de la ventana de evento abierta, igual que al pulsarla
+// (acción processInteractionModalAction). Las primeras llamadas a Math.random
+// devuelven `rolls` en orden, para forzar el resultado; el juego decide el azar
+// en ese mismo momento, y las llamadas siguientes vuelven a ser al azar.
+const chooseOption = (i, rolls = []) => {
+  const opt = modal()?.options?.[i]
+  if (!modal()?.show || !opt || opt.disabled) return false
+  const real = Math.random
+  let n = 0
+  Math.random = () => n < rolls.length ? rolls[n++] : real()
+  try { store().dispatch('processInteractionModalAction', opt) } finally { Math.random = real }
+  return true
+}
+
 // Edad actual en años de un personaje o mascota.
 const ageOf = x => AGE ? AGE(S(), x.birthMonth, x.birthYear) : S().year - x.birthYear
 
@@ -175,7 +207,7 @@ const ageOf = x => AGE ? AGE(S(), x.birthMonth, x.birthYear) : S().year - x.birt
 const SKILL_MAX = 30
 
 module.exports = {
-  store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal,
-  setAchievements, setAchievementThisRun,
+  store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal, chooseOption,
+  setAchievements, setAchievementThisRun, steamBlocked, unlockSteam,
   TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, SKILL_MAX,
 }

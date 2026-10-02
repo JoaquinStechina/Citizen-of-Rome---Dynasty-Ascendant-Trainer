@@ -3,6 +3,7 @@ const { el } = require('core/dom')
 const { t } = require('core/i18n')
 const game = require('game')
 const sel = require('core/selection')
+const ach = require('core/achievements')
 
 const PET_SKILLS = ['aptitude', 'vigor', 'tameness']
 
@@ -35,7 +36,7 @@ module.exports = {
     ui.traitEditor(traitsBox, {
       available: !!PETS, entity: selectedPet, list: () => PETS.traitList,
       title: id => PETS.traitTitles[id]?.title || id, describe: id => PETS.traitTitles[id]?.description || '',
-      add: (p, id) => PETS.add(p, id), remove: (p, id) => PETS.remove(p, id),
+      add: (p, id) => { PETS.add(p, id); ach.grant([id]) }, remove: (p, id) => PETS.remove(p, id),
     })
   },
 }

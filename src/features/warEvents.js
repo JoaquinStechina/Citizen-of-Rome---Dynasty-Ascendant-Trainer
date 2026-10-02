@@ -132,6 +132,23 @@ module.exports = {
       'border-radius:8px;padding:8px 10px;box-shadow:0 4px 16px rgba(0,0,0,.5);display:none', document.body)
     advisor.id = ADVISOR_ID
     let advSig = '', marked = []
+
+    // "Forzar": un botón por resultado posible; elige la opción en el juego con la
+    // tirada que da ese resultado.
+    function forceButtons(parent, index, results) {
+      const line = el('div', 'display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px', parent)
+      const label = el('span', 'font-size:11px;opacity:.75', line)
+      label.textContent = '🎲 ' + t('warForce')
+      for (const r of results) {
+        const s = r.summary
+        const main = s.death >= 0.995 ? ['☠ ' + t('warDeath'), '#e38a7a']
+          : s.crown >= 0.995 ? ['👑 ' + traitTitle(s.crownId), GOLD] : null
+        const text = main ? main[0] : parts(s).slice(0, 2).map(p => p[0]).join(' · ')
+        const b = ui.button(line, text + ' (' + pct(r.p) + ')', () => game.chooseOption(index, r.roll))
+        b.style.cssText += ';font-size:11px;padding:0 5px' + (main ? ';color:' + main[1] : '')
+        b.title = parts(s).map(p => p[0]).join(' · ')
+      }
+    }
     const unmark = () => { marked.forEach(b => { b.style.outline = ''; b.style.outlineOffset = '' }); marked = [] }
 
     ui.onRefresh(() => {
@@ -151,6 +168,7 @@ module.exports = {
           name.textContent = (i === a.rec ? '★ ' : '• ') + o.text
           partsLine(row, o.summary)
           if (o.crown) partsLine(row, o.crown, t('warCrownPath'))
+          if (o.force) forceButtons(row, i, o.force)
         })
         ui.note(advisor, t('warAdvisorFoot'))
       }

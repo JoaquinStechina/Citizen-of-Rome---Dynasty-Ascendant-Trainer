@@ -1,11 +1,13 @@
-// Logros: marcar o desmarcar logros conseguidos DENTRO del juego, agrupados como
-// en el juego, con buscador y filtro. Cada logro tiene dos casillas: conseguido
-// (global, como la pantalla de logros del juego) y conseguido en esta partida.
-// No se envía nada a Steam (ver game.setAchievements). Ocupa todo el ancho del
-// panel y reparte sus grupos en columnas.
+// Logros: marcar o desmarcar logros conseguidos, agrupados como en el juego, con
+// buscador y filtro. Cada logro tiene dos casillas: conseguido (global, como la
+// pantalla de logros del juego) y conseguido en esta partida. Si "también en
+// Steam" está activado, marcar un logro lo desbloquea en Steam (core/achievements);
+// quitarlo solo lo quita en el juego. Ocupa todo el ancho del panel y reparte sus
+// grupos en columnas.
 const { CTRL_CSS, el } = require('core/dom')
 const { t } = require('core/i18n')
 const game = require('game')
+const ach = require('core/achievements')
 
 // Filtro actual; fuera de build() para conservarlo al cambiar de idioma.
 let filterText = '', filterMode = 'all'
@@ -22,6 +24,25 @@ module.exports = {
     const groupTitle = g => { const x = ACH.titles.groups?.[g]; return (typeof x === 'string' ? x : x?.title) || g }
     const got = () => S()?.achievements || []
     const thisRun = () => S()?.current?.flagAchievementsThisRun || []
+
+    // Steam: interruptor, enviar los ya conseguidos y aviso si el juego no lo permite.
+    const steamRow = el('div', 'display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 4px', body)
+    const steamLabel = el('label', 'display:flex;align-items:center;gap:6px;cursor:pointer', steamRow)
+    steamLabel.title = t('achSteamTip')
+    const steamCb = el('input', 'margin:0;cursor:pointer', steamLabel)
+    steamCb.type = 'checkbox'
+    steamCb.checked = ach.steamOn()
+    steamCb.onchange = () => ach.setSteamOn(steamCb.checked)
+    steamLabel.append(t('achSteam'))
+    const sync = ui.button(steamRow, t('achSyncSteam'), () => {
+      const ids = [...new Set(got())]
+      if (!ids.length || !confirm(t('achConfirmSync', { n: ids.length }))) return
+      const why = game.unlockSteam(ids)
+      steamStatus.textContent = why ? t('steam_' + why) : t('achSyncDone', { n: ids.length })
+    }, t('achSyncTip'))
+    sync.style.marginLeft = 'auto'
+    const steamStatus = el('div', 'font-size:11px;color:#e0c07a;width:100%', steamRow)
+    ui.onRefresh(() => { const why = game.steamBlocked(); if (why) steamStatus.textContent = t('steam_' + why) })
 
     // Buscador, filtro, contador y botones en una fila (se parte si el panel es estrecho).
     const bar = el('div', 'display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:2px 0 4px', body)
@@ -45,7 +66,11 @@ module.exports = {
     const rows = []
     const shownIds = () => [...new Set(rows.filter(r => r.row.style.display !== 'none').map(r => r.id))]
     const bulk = el('div', 'display:flex;gap:4px;margin-left:auto', bar)
-    ui.button(bulk, t('achMarkShown'), () => game.setAchievements(shownIds(), true), t('achShownTip'))
+    ui.button(bulk, t('achMarkShown'), () => {
+      const ids = shownIds()
+      if (ids.length && ach.steamOn() && !confirm(t('achConfirmSteam', { n: ids.length }))) return
+      ach.grant(ids)
+    }, t('achShownTip'))
     ui.button(bulk, t('achUnmarkShown'), () => {
       const ids = shownIds().filter(id => got().includes(id))
       if (ids.length && confirm(t('achConfirmUnmark', { n: ids.length }))) game.setAchievements(ids, false)
@@ -73,7 +98,7 @@ module.exports = {
         const run = el('input', 'margin:0 4px 0 0;cursor:pointer', row)
         run.type = 'checkbox'
         run.title = t('achColRun')
-        cb.onchange = () => { game.setAchievements([id], cb.checked); ui.refresh(true) }
+        cb.onchange = () => { if (cb.checked) ach.grant([id]); else game.setAchievements([id], false); ui.refresh(true) }
         name.onclick = () => cb.click()
         run.onchange = () => { game.setAchievementThisRun(id, run.checked); ui.refresh(true) }
         const r = { id, row, cb, run, text: (titleOf(id) + ' ' + descOf(id)).toLowerCase() }

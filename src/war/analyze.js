@@ -111,9 +111,18 @@ function liveStats(sc) {
   return s
 }
 
-// Ventana abierta en el juego → { evId, ev, options: [{ text, summary, crown }], rec }
+// Resultados que se pueden forzar en un paso con azar: [{ p, roll, summary }], o
+// null si el paso no tiene azar (o le faltan las tiradas).
+function forceable(evId, key, ch) {
+  const bs = branches(evId, key, ch)
+  if (bs.length < 2 || bs.some(({ b }) => !b.roll)) return null
+  return bs.map(({ b, p }) => ({ p, roll: b.roll, summary: branchSummary(evId, b, ch) }))
+}
+
+// Ventana abierta en el juego → { evId, ev, options: [{ text, summary, crown, force }], rec }
 // o null si no es un evento militar conocido. `crown` es el resumen jugando a por
-// la corona cuando difiere del recomendado.
+// la corona cuando difiere del recomendado; `force`, los resultados que se pueden
+// forzar al elegir esa opción (ver forceable).
 function analyzeModal(m, ch) {
   if (!m?.show || !m.options?.length) return null
   let evId = m.options.map(o => o.action?.event).find(e => EVENTS[e])
@@ -128,9 +137,9 @@ function analyzeModal(m, ch) {
       return s
     }
     const summary = live(better), crown = live(crownFirst)
-    return { text: o.text, summary, crown: crown.crown > summary.crown + EPS ? crown : null }
+    return { text: o.text, summary, crown: crown.crown > summary.crown + EPS ? crown : null, force: a?.event === evId ? forceable(evId, stepKey(evId, a), ch) : null }
   })
   return { evId, ev: EVENTS[evId], options, rec: options.length > 1 ? bestIndex(options.map(o => o.summary)) : -1 }
 }
 
-module.exports = { EVENTS, analyzeModal, optionSummary, crownPath, branches, branchEffects, bestIndex }
+module.exports = { EVENTS, analyzeModal, optionSummary, crownPath, forceable, branches, branchEffects, bestIndex }

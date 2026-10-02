@@ -3,6 +3,7 @@ const { el } = require('core/dom')
 const { t } = require('core/i18n')
 const game = require('game')
 const sel = require('core/selection')
+const ach = require('core/achievements')
 
 const SKILLS = ['intelligence', 'stewardship', 'eloquence', 'combat']
 
@@ -50,7 +51,7 @@ module.exports = {
     ui.traitEditor(traitsBox, {
       available: !!TR, entity: selected, list: () => TR.list,
       title: id => TR.titles[id]?.title || id, describe: id => TR.titles[id]?.description || '',
-      add: (ch, id) => TR.add(ch, id),
+      add: (ch, id) => { TR.add(ch, id); ach.grant([id]) },
       remove: (ch, id) => TR.remove(ch, id),
     })
   },
