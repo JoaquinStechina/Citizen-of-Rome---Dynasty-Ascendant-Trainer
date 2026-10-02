@@ -1,68 +1,102 @@
-# CoRDA - Trainer
+# CoR:DA - Trainer
 
-Trainer para **Citizen of Rome - Dynasty Ascendant** (Steam). Añade un panel flotante dentro del juego para editar la partida en tiempo real.
+Trainer para **Citizen of Rome - Dynasty Ascendant** (Steam). Añade un panel flotante **dentro del juego** para editar tu partida en tiempo real: dinero, familia, rasgos, mascotas, propiedades, logros… Además, te aconseja en los eventos militares y puede forzar su resultado.
 
-El juego es una app de Electron (JavaScript/Vue), así que el trainer no toca la memoria del proceso. Se conecta por el puerto de depuración de Chrome y modifica directamente el estado del juego, usando sus propias funciones internas cuando existen: para rasgos, nivel de trabajo y multiplicadores.
+El juego es una app de Electron (JavaScript/Vue), así que el trainer **no toca la memoria del proceso**. Se conecta por el puerto de depuración de Chrome y cambia el estado del juego directamente. Cuando existen, usa las propias funciones internas del juego, así se aplican sus efectos igual que al jugar.
 
-## Requisitos
+Probado con la versión **1.6.36** del juego.
 
-- **Node.js 22 o superior.** Usa `fetch` y `WebSocket` nativos, sin dependencias ni `npm install`.
-- El juego lanzado con el puerto de depuración remota.
+## Características
 
-## Uso
-
-1. En Steam: clic derecho en el juego → **Propiedades** → **Opciones de lanzamiento**:
-   ```
-   --remote-debugging-port=9222
-   ```
-2. Abre el juego y carga tu partida.
-3. Ejecuta el trainer y deja la ventana abierta:
-   ```
-   node trainer.mjs
-   ```
-4. Dentro del juego, **F8** muestra u oculta el panel.
-
-Si el juego recarga la página, el trainer vuelve a inyectar el panel automáticamente. Para usar otro puerto, define la variable de entorno `CDP_PORT` (en PowerShell: `$env:CDP_PORT=9333; node trainer.mjs`).
-
-| Opción | Qué hace |
+| Sección | Qué puedes hacer |
 |---|---|
-| `node trainer.mjs --dev` | Modo desarrollo: reinyecta el panel cada vez que guardas un archivo de `src/` o `locales/` |
-| `node trainer.mjs --check` | Comprueba `src/` y `locales/` (sintaxis, JSON, claves de idioma) sin abrir el juego |
-
-> Mientras la opción de lanzamiento esté puesta, cualquier programa de tu PC puede controlar el juego por ese puerto (solo en local). Quítala cuando no uses el trainer.
-
-## Qué se puede editar
-
-| Sección | Contenido |
-|---|---|
-| **Recursos** | Dinero, influencia y prestigio de la dinastía |
-| **Familia** | Edad, las 4 habilidades, nivel de trabajo y rasgos de cada miembro de la casa |
-| **Rasgos acumulables** | Cuántas copias tiene cada miembro de un rasgo acumulable (*Strong*, *Veteran*, personalidades…), con el bonus de habilidad que dan |
+| **Recursos** | Cambiar dinero, influencia y prestigio de la dinastía |
+| **Familia** | Edad, inteligencia, administración, elocuencia, combate, nivel de trabajo y rasgos de cada miembro de la casa |
+| **Rasgos acumulables** | Cuántas copias tiene un personaje de cada rasgo acumulable (*Strong*, *Veteran*, personalidades…), con el bonus que dan |
 | **Mascotas** | Edad, aptitud, vigor, docilidad y rasgos de cada mascota |
-| **Propiedades de la casa** | Las 22 propiedades, con su límite administrable |
-| **Multiplicadores** | Factor propio del trainer para salud, ingresos, fertilidad, gastos, trabajos, propiedades, etc. |
-| **Logros** | Marcar o quitar logros conseguidos (global y en la partida actual), con buscador y filtro. Opcionalmente (activado por defecto) también los desbloquea en Steam |
-| **Eventos militares** | Árbol de decisiones de los 8 eventos de guerra con corona: probabilidad de morir y de corona, heridas y premios de cada opción, con las cifras reales de tu partida. Cuando aparece uno de estos eventos, el trainer muestra un consejo junto a la ventana, marca la opción recomendada y permite **forzar el resultado** de las opciones con azar (corona, victoria, muerte…). Se puede desactivar |
+| **Propiedades de la casa** | Las 22 propiedades (tierras, animales, barcos, fincas), con su límite administrable |
+| **Multiplicadores** | Un factor propio para salud, ingresos, fertilidad, gastos, trabajos, propiedades… |
+| **Logros** | Marcar o quitar logros, con buscador y filtro; opcionalmente también en Steam |
+| **Eventos militares** | El árbol de decisiones de los 8 eventos de guerra con corona: probabilidad de morir y de ganar la corona, heridas y premios de cada opción |
+
+**Consejo en los eventos militares.** Cuando aparece uno de estos eventos, el trainer muestra al lado de la ventana qué pasa con cada opción, con las cifras reales de tu partida, y marca la recomendada. En las opciones con azar puedes **forzar el resultado**: corona, victoria, muerte…
 
 Todos los valores se pueden escribir a mano (Enter aplica, Esc cancela) o cambiar con botones rápidos.
 
-## Panel
+### El panel
 
-- **Idiomas:** español (Argentina), portugués (Brasil), inglés, ruso, francés y alemán. Se cambian con las banderas de la cabecera. Los nombres de rasgos, trabajos y propiedades vienen del juego, que solo los trae en inglés.
-- **Mover:** se arrastra desde el título.
-- **Redimensionar:** desde cualquier borde o esquina.
-- **Secciones:** se pliegan con un clic en su nombre y se reordenan arrastrando la cabecera o con ▲▼. Si el panel es ancho, las secciones se reparten en columnas.
-- **Bloques:** dentro de las secciones, los bloques (rasgos, grupos de propiedades, grupos de logros, multiplicadores activos) también se pliegan con un clic en su título.
-- **⊟ / ⊞** pliegan o despliegan todas las secciones y bloques a la vez.
-- **↺** restablece posición, tamaño y orden.
+- **6 idiomas:** español (Argentina), portugués (Brasil), inglés, ruso, francés y alemán. Se cambian con las banderas de la cabecera. Los nombres de rasgos, trabajos y propiedades vienen del juego, que solo los trae en inglés.
+- **Se puede mover** arrastrando el título y **redimensionar** desde cualquier borde o esquina.
+- **Secciones y bloques plegables.** Las secciones se reordenan arrastrando su cabecera o con ▲▼. **⊟ / ⊞** pliegan o despliegan todo y **↺** restablece posición, tamaño y orden.
+- **F8** muestra u oculta el panel.
+- Idioma, posición, tamaño, orden y lo plegado se recuerdan entre sesiones.
 
-Idioma, posición, tamaño, orden y lo que esté plegado se recuerdan entre sesiones.
+## Requisitos
+
+- **Windows** con el juego instalado desde Steam.
+- **[Node.js](https://nodejs.org/) 22 o superior.** El trainer no tiene dependencias: no hace falta `npm install`.
+
+## Instalación y uso
+
+1. Descarga este repositorio (botón **Code → Download ZIP**, y descomprímelo) o clónalo con git.
+2. En Steam: clic derecho en el juego → **Propiedades** → **General** → **Opciones de lanzamiento**, y escribe:
+   ```
+   --remote-debugging-port=9222
+   ```
+3. Abre el juego y carga tu partida.
+4. En la carpeta del trainer, abre una terminal y ejecuta:
+   ```
+   node trainer.mjs
+   ```
+   Deja la ventana abierta mientras juegas. Si el juego recarga la página, el trainer vuelve a poner el panel solo; al cerrar el juego, el trainer termina.
+5. Dentro del juego, pulsa **F8** para mostrar u ocultar el panel.
+6. **Guarda la partida** después de hacer cambios para que se conserven.
+
+Para usar otro puerto, define la variable de entorno `CDP_PORT` (en PowerShell: `$env:CDP_PORT=9333; node trainer.mjs`) y pon el mismo número en las opciones de lanzamiento.
+
+## Avisos importantes
+
+- **Puerto de depuración.** Mientras la opción de lanzamiento esté puesta, cualquier programa de tu PC puede controlar el juego por ese puerto; desde fuera de tu PC no. Quítala cuando no uses el trainer.
+- **Logros de Steam.** Con "Desbloquear también en Steam" activado, que es lo que viene por defecto, se desbloquean en Steam:
+  - los logros que marca el trainer;
+  - los de los rasgos que añade (coronas, heridas, *Veteran*, *Pedigreed*…);
+  - los que da un resultado forzado.
+
+  **Los logros de Steam no se pueden quitar.** Si no lo quieres, desactiva la casilla en la sección Logros. Igual que el juego, no se envía nada en modo fácil, sandbox o con mods.
+- **Haz una copia de tus partidas** antes de cambios grandes. Están en `Documentos\CitizenOfRomeDynastyAscendant\saves`. Hay cambios que no tienen vuelta atrás, como forzar la muerte de un personaje.
+- El trainer **no activa el modo mods** del juego, que es lo que desactiva los logros de la partida.
+- Proyecto de fans, sin relación con los desarrolladores del juego. Úsalo bajo tu responsabilidad.
+
+## Notas de uso
+
+- **Habilidades:** a partir de ~27–30, las fórmulas del juego ya dan el máximo; valores mucho mayores no aportan nada.
+- **Rasgos:** se añaden y quitan con las funciones del juego, así que suman o restan sus bonus de habilidad y eliminan los rasgos opuestos.
+- **Rasgos acumulables:** cada copia extra suma un 10% del bonus de habilidad. El juego no las aplica a salud, fertilidad ni ingresos (ver [docs](docs/mecanicas-generales.md#rasgos-acumulables)). Con 0 copias se quita el rasgo.
+- **Edad:** el juego la calcula a partir de la fecha de nacimiento (año de 13 meses), así que el trainer mueve el año de nacimiento. Envejecer mucho a alguien aumenta su probabilidad de morir.
+- **Propiedades:** se añaden gratis. Por encima de 1,2 veces el límite administrable, el juego puede provocar robos o enfermedades que te quitan parte.
+- **Multiplicadores:** el factor del trainer es permanente, se guarda con la partida y se multiplica con los del juego. En "Gastos" conviene un factor menor que 1.
+- **Logros:** "Conseguido" cambia la lista global del juego (la de su pantalla de logros); "En esta partida" se guarda con la partida. "Enviar a Steam los conseguidos" desbloquea en Steam todos los de la lista del juego ([detalles](docs/logros.md#en-el-trainer)).
+- **Eventos militares:** la opción recomendada es la de menos riesgo de morir; a igual riesgo, la de más probabilidad de corona, menos heridas y más prestigio e influencia ([detalles](docs/eventos-militares.md#en-el-trainer)).
 
 ## Mecánicas del juego
 
-La carpeta [`docs/`](docs/README.md) reúne lo descubierto en el código del juego: educación, trabajos, mascotas, propiedades, logros, eventos militares y mecánicas generales (clases, costos, fórmulas).
+La carpeta [`docs/`](docs/README.md) reúne lo descubierto en el código del juego, con la fórmula y el módulo de donde sale cada dato:
 
-## Estructura del código
+- [Mecánicas generales](docs/mecanicas-generales.md): clases, costos, calendario, habilidades, rasgos, multiplicadores.
+- [Educación](docs/educacion.md): qué escuela conviene, el papel de la inteligencia, retórica judicial o deliberativa.
+- [Trabajos](docs/trabajos.md): oficios mejor pagados, cargos y oficios que benefician a toda la familia.
+- [Mascotas](docs/mascotas.md), [Propiedades](docs/propiedades.md) y [Logros](docs/logros.md).
+- [Eventos militares](docs/eventos-militares.md): el mejor camino en cada evento de guerra.
+
+## Para desarrolladores
+
+| Comando | Qué hace |
+|---|---|
+| `node trainer.mjs` | Conecta con el juego e inyecta el panel |
+| `node trainer.mjs --dev` | Además, vuelve a inyectar el panel cada vez que guardas un archivo de `src/` o `locales/` |
+| `node trainer.mjs --check` | Comprueba `src/` y `locales/` (sintaxis, JSON, claves de idioma) sin abrir el juego |
+
+### Estructura
 
 ```
 trainer.mjs            Node: conexión con el juego, empaquetado de src/, --dev y --check
@@ -72,6 +106,7 @@ src/
 ├─ core/
 │  ├─ panel.js         ventana: mover, redimensionar, cabecera, rejilla de secciones
 │  ├─ ui.js            piezas reutilizables: filas, edad, editor de rasgos, desplegables
+│  ├─ achievements.js  logros que consigue el trainer (en el juego y en Steam)
 │  ├─ i18n.js          t('clave'), idioma actual
 │  ├─ flags.js         banderas (SVG) y orden de los idiomas
 │  ├─ selection.js     personaje y mascota elegidos (compartidos entre secciones)
@@ -120,9 +155,17 @@ No hay paso de compilación: el script se arma de nuevo en cada inyección.
 3. Añade sus textos (al menos `"ejemplo": "Título"`) en cada `locales/*.json`.
 4. Con `node trainer.mjs --dev` corriendo, verás la sección al guardar.
 
-Piezas disponibles en `ui` (ver `src/core/ui.js`): `addRow` (fila numérica con botones, nota, colores…), `ageRow`, `traitEditor`, `select`, `rosterSelect`, `button`, `note`, `subheading`, `group` (bloque plegable que se recuerda por una clave, p. ej. `ui.group(body, t('traits'), 'ejemplo.rasgos')`) y `onRefresh` (función que se ejecuta cada 500 ms). La selección de personaje o mascota está en `core/selection` (`sel.character()`, `sel.pet()`).
+Piezas disponibles en `ui` (ver `src/core/ui.js`):
+- **Filas y controles:**
+  - `addRow`: fila numérica con botones, nota, colores…
+  - `ageRow`, `traitEditor`, `select`, `rosterSelect`, `button`.
+  - `fillTraitSelect`: desplegable de rasgos agrupados.
+- **Textos y bloques:**
+  - `note` y `subheading`.
+  - `group`: bloque plegable que se recuerda por una clave, por ejemplo `ui.group(body, t('traits'), 'ejemplo.rasgos')`.
+- **Refresco:** `onRefresh` registra una función que se ejecuta cada 500 ms.
 
-Si una sección lanza un error al construirse, el resto del panel sigue funcionando y esa sección muestra "No disponible".
+La selección de personaje o mascota está en `core/selection` (`sel.character()`, `sel.pet()`). Si una sección lanza un error al construirse, el resto del panel sigue funcionando y esa sección muestra "No disponible".
 
 ### Añadir un idioma
 
@@ -132,20 +175,5 @@ Si una sección lanza un error al construirse, el resto del panel sigue funciona
 
 ### Si una actualización del juego rompe algo
 
-Los identificadores internos del juego (`'50ab'`, `'a822'`, `'fc68'`…) están **solo en `src/game.js`**, agrupados por tema (rasgos, trabajos, mascotas, propiedades, multiplicadores). Si un grupo no carga, el panel muestra "No disponible en esta versión del juego" en lo que dependa de él, y la consola del juego (F12, o las DevTools por el puerto de depuración) muestra `[trainer] <grupo> no disponible`.
-
-Los árboles de los eventos militares están copiados del código del juego en `src/war/events.js`; si una actualización cambia un evento, hay que corregirlo ahí.
-
-## Notas
-
-- **Logros:** el trainer no activa el modo mods del juego, que es lo que desactiva los logros de la partida.
-- **Habilidades:** a partir de ~27–30 las fórmulas del juego ya dan el máximo; valores mucho mayores no aportan nada.
-- **Rasgos:** se añaden y quitan con las funciones del juego, así que suman o restan sus bonus de habilidad y eliminan los rasgos opuestos.
-- **Rasgos acumulables:** cada copia extra suma un 10% del bonus de habilidad. El juego no aplica las copias a salud, fertilidad ni ingresos (ver [docs](docs/mecanicas-generales.md#rasgos-acumulables)). Con 0 copias se quita el rasgo.
-- **Edad:** el juego la calcula a partir de la fecha de nacimiento (calendario de 13 meses); el trainer mueve el año de nacimiento. Envejecer mucho a alguien aumenta su probabilidad de morir.
-- **Propiedades:** por encima de 1,2× el límite administrable, el juego puede provocar robos o enfermedades que te quitan parte. Se añaden gratis, sin descontar dinero.
-- **Multiplicadores:** el factor del trainer es permanente, se guarda con la partida y se multiplica con los del juego. En "Gastos" conviene un factor menor que 1.
-- **Logros:** la casilla "Conseguido" cambia la lista global del juego (la de su pantalla de logros, guardada al momento en `localStorage.core`); "En esta partida" se guarda con la partida. Algunos logros aparecen en dos grupos (así los agrupa el juego) y se cuentan una vez.
-- **Steam:** con "Desbloquear también en Steam" activado, se desbloquean en Steam los logros que marca el trainer y los de los rasgos que añade (coronas, heridas, *Veteran*, *Pedigreed*…). "Enviar a Steam los conseguidos" envía todos los de la lista del juego. **Los logros de Steam no se pueden quitar.** Como el juego, no se envía nada en modo fácil, sandbox o con mods (ver [docs/logros.md](docs/logros.md#en-el-trainer)).
-- **Guarda la partida** después de hacer cambios para que se conserven.
-- Probado con la versión 1.6.36 del juego.
+- **Identificadores internos.** Los del juego (`'50ab'`, `'a822'`, `'fc68'`…) están **solo en `src/game.js`**, agrupados por tema. Si un grupo no carga, el panel muestra "No disponible en esta versión del juego" en lo que dependa de él. La consola del juego (F12, o las DevTools por el puerto de depuración) muestra `[trainer] <grupo> no disponible`.
+- **Eventos militares.** Sus árboles, con las tiradas que fuerzan cada resultado, están copiados del código del juego en `src/war/events.js`. Si una actualización cambia un evento, hay que corregirlo ahí.
