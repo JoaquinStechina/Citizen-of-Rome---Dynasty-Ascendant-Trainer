@@ -51,10 +51,36 @@ const load = (what, fn) => { try { return fn(gameRequire()) } catch (e) { consol
 
 // Rasgos de personajes: definiciones, títulos y las funciones del juego para
 // añadir/quitar (aplican los bonus de habilidad y quitan los opuestos).
+// Rasgos acumulables (isStackable): volver a añadir uno que ya se tiene suma
+// copias en ch.traitStackCount, y cada copia extra suma traitStackMultiplier (10%)
+// del bonus de habilidad; quitarlo sin forzar resta una copia.
 const TR = load('rasgos', req => {
   const defs = req('50ab').default()
-  return { list: defs.list, titles: req('7073').default(), discoverable: defs.discoverable || [],
-    add: (ch, id) => req('a822').a(S(), ch.id, id), remove: (ch, id) => req('cc6f').a(S(), ch.id, id, true) }
+  const addTrait = req('a822').a, removeTrait = req('cc6f').a
+  const discoverable = defs.discoverable || []
+  const add = (ch, id) => {
+    addTrait(S(), ch.id, id)
+    // Los rasgos "descubribles" no se muestran en el juego hasta descubrirlos.
+    if (discoverable.includes(id)) {
+      ch.discoveredTraits = ch.discoveredTraits || []
+      if (!ch.discoveredTraits.includes(id)) ch.discoveredTraits.push(id)
+    }
+  }
+  const remove = (ch, id) => removeTrait(S(), ch.id, id, true)
+  // Copias que tiene: 0 si no lo tiene; el juego guarda 0 o nada cuando hay una.
+  const stacks = (ch, id) => ch?.traits?.includes(id) ? Math.max(1, ch.traitStackCount?.[id] || 0) : 0
+  const setStacks = (ch, id, n) => {
+    n = Math.max(0, Math.min(99, Math.floor(n)))
+    let cur = stacks(ch, id)
+    if (n === cur) return
+    if (n === 0) return remove(ch, id)
+    if (cur === 0) { add(ch, id); cur = 1 }
+    if (n > cur) addTrait(S(), ch.id, id, n - cur)
+    else for (; cur > n; cur--) removeTrait(S(), ch.id, id, false)
+  }
+  return { list: defs.list, titles: req('7073').default(), discoverable, add, remove,
+    stackable: Object.keys(defs.list).filter(id => defs.list[id].isStackable),
+    stackMultiplier: req('7de9').default.traitStackMultiplier, stacks, setStacks }
 })
 
 // Edad en años a partir de mes/año de nacimiento (calendario de 13 meses).

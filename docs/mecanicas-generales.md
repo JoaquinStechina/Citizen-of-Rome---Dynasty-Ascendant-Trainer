@@ -54,8 +54,27 @@ Cuatro habilidades: **inteligencia, administración (stewardship), elocuencia y 
 ## Rasgos
 
 - Se añaden y quitan con funciones propias del juego (`addTrait` `[a822]`, `removeTrait` `[cc6f]`) que **suman o restan los bonus de habilidad** del rasgo y **quitan los rasgos opuestos**.
-- Los rasgos "acumulables" (*stackable*) pueden tenerse varias veces; cada copia extra aporta un 10% del bonus (`traitStackMultiplier`).
 - Hay rasgos **descubribles** (orientación sexual) que no se muestran hasta descubrirlos.
+
+### Rasgos acumulables
+
+82 rasgos tienen `isStackable` y pueden tenerse varias veces. Las copias se guardan en `traitStackCount[rasgo]` del personaje; 0 o nada significa una copia.
+
+| Tipo | Ejemplos |
+|---|---|
+| Genéticos | *Strong*, *Weak*, *Brilliant*, *Simple Minded*, *Attractive*, *Unattractive*, *Giant*, *Short-Statured*, *Deformed* |
+| Daños y estados | *Mangled*, *Severely Mangled*, *Wounded*, *Grievously Wounded*, *Ill*, *Stressed*, *Depressed*, *Malnourished*, *Obese*, *Drunkard*, *Disfigured*, *Stutter* |
+| Personalidad | todos |
+| Habilidades y honores | *Veteran*, *Gladiator*, *Horse Rider*, los "Former …" (ex magistrados), las coronas militares |
+| Castigos | *Deserter*, *Barred From Senate*, *Barred from Ludi* |
+
+- **Añadir** un rasgo que ya se tiene suma una copia `[a822]`. Cada copia extra suma el **10%** del bonus de habilidad (`traitStackMultiplier = 0.1` `[7de9]`): *Strong* (+3,5 combate) ×2 = +3,85, ×3 = +4,2.
+- **Quitar** un rasgo resta una copia; con una sola, lo quita entero `[cc6f]`. Algunas curas lo quitan entero de una vez (`forceClearStack`).
+- **Herencia**: los hijos heredan las copias de los padres y, con un 0,9% de probabilidad, nacen con 1–2 copias extra `[2ff7]`.
+- **Efectos que no son habilidades** (salud, fertilidad, ingresos, gastos): `[4476]` calcula un factor ×(1 + copias × 0,1) que solo aparece en el **desglose**. El total que aplica el juego usa el valor del rasgo sin las copias. Por eso acumular *Strong* no da más salud. Parece un fallo del juego.
+- El costo del médico sube con las copias de *Wounded* (×5 por copia de *Grievously Wounded*) `[0c3d]`.
+- El logro *Cos Tertivm* pide *Former Consul* ×2 `[3bbd]`.
+- El trainer tiene una sección **Rasgos acumulables** para cambiar las copias con las funciones del juego.
 
 ## Multiplicadores (modificadores)
 

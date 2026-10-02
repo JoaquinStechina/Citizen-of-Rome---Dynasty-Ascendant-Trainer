@@ -37,6 +37,7 @@ Si el juego recarga la página, el trainer vuelve a inyectar el panel automátic
 |---|---|
 | **Recursos** | Dinero, influencia y prestigio de la dinastía |
 | **Familia** | Edad, las 4 habilidades, nivel de trabajo y rasgos de cada miembro de la casa |
+| **Rasgos acumulables** | Cuántas copias tiene cada miembro de un rasgo acumulable (*Strong*, *Veteran*, personalidades…), con el bonus de habilidad que dan |
 | **Mascotas** | Edad, aptitud, vigor, docilidad y rasgos de cada mascota |
 | **Propiedades de la casa** | Las 22 propiedades, con su límite administrable |
 | **Multiplicadores** | Factor propio del trainer para salud, ingresos, fertilidad, gastos, trabajos, propiedades, etc. |
@@ -77,7 +78,7 @@ src/
 │  └─ dom.js           el(), fmt(), estilos comunes
 └─ features/           una sección del panel por archivo
    ├─ index.js         lista y orden por defecto de las secciones
-   └─ resources.js, family.js, pets.js, estate.js, multipliers.js, achievements.js
+   └─ resources.js, family.js, traitStacks.js, pets.js, estate.js, multipliers.js, achievements.js
 locales/               un JSON de textos por idioma (es, pt, en, ru, fr, de)
 docs/                  mecánicas del juego descubiertas en su código
 ```
@@ -134,6 +135,7 @@ Los identificadores internos del juego (`'50ab'`, `'a822'`, `'fc68'`…) están 
 - **Logros:** el trainer no activa el modo mods del juego, que es lo que desactiva los logros de la partida.
 - **Habilidades:** a partir de ~27–30 las fórmulas del juego ya dan el máximo; valores mucho mayores no aportan nada.
 - **Rasgos:** se añaden y quitan con las funciones del juego, así que suman o restan sus bonus de habilidad y eliminan los rasgos opuestos.
+- **Rasgos acumulables:** cada copia extra suma un 10% del bonus de habilidad. El juego no aplica las copias a salud, fertilidad ni ingresos (ver [docs](docs/mecanicas-generales.md#rasgos-acumulables)). Con 0 copias se quita el rasgo.
 - **Edad:** el juego la calcula a partir de la fecha de nacimiento (calendario de 13 meses); el trainer mueve el año de nacimiento. Envejecer mucho a alguien aumenta su probabilidad de morir.
 - **Propiedades:** por encima de 1,2× el límite administrable, el juego puede provocar robos o enfermedades que te quitan parte. Se añaden gratis, sin descontar dinero.
 - **Multiplicadores:** el factor del trainer es permanente, se guarda con la partida y se multiplica con los del juego. En "Gastos" conviene un factor menor que 1.

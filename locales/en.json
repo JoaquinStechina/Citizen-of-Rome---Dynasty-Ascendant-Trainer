@@ -12,6 +12,7 @@
   "expandAll": "Expand all",
   "resources": "Resources",
   "family": "Family",
+  "traitStacks": "Stackable traits",
   "pets": "Pets",
   "estate": "Household properties",
   "multipliers": "Multipliers",
@@ -106,5 +107,10 @@
   "achUnmarkShown": "Unmark shown",
   "achShownTip": "Only affects the achievements visible with the current filter",
   "achConfirmUnmark": "Remove {n} unlocked achievements?",
-  "achNote": "Only changes achievements inside the game. Nothing is sent to Steam."
+  "achNote": "Only changes achievements inside the game. Nothing is sent to Steam.",
+  "noStackable": "No stackable traits.",
+  "stackCopies": "Trait copies (0 = remove)",
+  "stackMinusTip": "Remove one copy (with 1 copy, removes the trait)",
+  "stackPlusTip": "Add one copy",
+  "stackNote": "Each extra copy adds 10% more of the skill bonus. Health, fertility and revenue don't change with copies (that's how the game calculates them). Children inherit the copies."
 }

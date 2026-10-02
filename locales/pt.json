@@ -12,6 +12,7 @@
   "expandAll": "Expandir tudo",
   "resources": "Recursos",
   "family": "Família",
+  "traitStacks": "Traços acumuláveis",
   "pets": "Mascotes",
   "estate": "Propriedades da casa",
   "multipliers": "Multiplicadores",
@@ -106,5 +107,10 @@
   "achUnmarkShown": "Remover as exibidas",
   "achShownTip": "Afeta apenas as conquistas visíveis com o filtro atual",
   "achConfirmUnmark": "Remover {n} conquistas obtidas?",
-  "achNote": "Só altera as conquistas dentro do jogo. Nada é enviado à Steam."
+  "achNote": "Só altera as conquistas dentro do jogo. Nada é enviado à Steam.",
+  "noStackable": "Não tem traços acumuláveis.",
+  "stackCopies": "Cópias do traço (0 = remover)",
+  "stackMinusTip": "Remover uma cópia (com 1 cópia, remove o traço)",
+  "stackPlusTip": "Adicionar uma cópia",
+  "stackNote": "Cada cópia extra soma mais 10% do bônus de habilidade. Saúde, fertilidade e renda não mudam com as cópias (é assim que o jogo calcula). Os filhos herdam as cópias."
 }

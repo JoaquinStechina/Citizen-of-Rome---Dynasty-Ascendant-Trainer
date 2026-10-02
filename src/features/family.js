@@ -50,14 +50,7 @@ module.exports = {
     ui.traitEditor(traitsBox, {
       available: !!TR, entity: selected, list: () => TR.list,
       title: id => TR.titles[id]?.title || id, describe: id => TR.titles[id]?.description || '',
-      add: (ch, id) => {
-        TR.add(ch, id)
-        // Los rasgos "descubribles" no se muestran en el juego hasta descubrirlos.
-        if (TR.discoverable.includes(id)) {
-          ch.discoveredTraits = ch.discoveredTraits || []
-          if (!ch.discoveredTraits.includes(id)) ch.discoveredTraits.push(id)
-        }
-      },
+      add: (ch, id) => TR.add(ch, id),
       remove: (ch, id) => TR.remove(ch, id),
     })
   },

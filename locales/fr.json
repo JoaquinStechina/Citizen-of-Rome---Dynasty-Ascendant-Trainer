@@ -12,6 +12,7 @@
   "expandAll": "Tout déplier",
   "resources": "Ressources",
   "family": "Famille",
+  "traitStacks": "Traits cumulables",
   "pets": "Animaux",
   "estate": "Propriétés du foyer",
   "multipliers": "Multiplicateurs",
@@ -106,5 +107,10 @@
   "achUnmarkShown": "Décocher ceux affichés",
   "achShownTip": "N'affecte que les succès visibles avec le filtre actuel",
   "achConfirmUnmark": "Retirer {n} succès obtenus ?",
-  "achNote": "Ne modifie que les succès dans le jeu. Rien n'est envoyé à Steam."
+  "achNote": "Ne modifie que les succès dans le jeu. Rien n'est envoyé à Steam.",
+  "noStackable": "Aucun trait cumulable.",
+  "stackCopies": "Copies du trait (0 = retirer)",
+  "stackMinusTip": "Retirer une copie (avec 1 copie, retire le trait)",
+  "stackPlusTip": "Ajouter une copie",
+  "stackNote": "Chaque copie supplémentaire ajoute 10 % de plus du bonus de compétence. La santé, la fertilité et les revenus ne changent pas avec les copies (c'est ainsi que le jeu les calcule). Les enfants héritent des copies."
 }

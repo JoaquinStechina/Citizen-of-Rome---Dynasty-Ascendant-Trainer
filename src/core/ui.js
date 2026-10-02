@@ -158,41 +158,47 @@ function createUI() {
         const x = ui.button(chip, '×', () => remove(e, id), t('removeTrait'))
         x.style.cssText += ';border:none;background:none;padding:0 2px;font-weight:700'
       }
-      const prev = pick.value
-      pick.innerHTML = ''
-      const byGroup = {}
-      for (const [id, def] of Object.entries(list())) {
-        if (!owned.includes(id)) (byGroup[def.group] = byGroup[def.group] || []).push(id)
-      }
-      for (const g of GROUP_ORDER.concat(Object.keys(byGroup).filter(g => !GROUP_ORDER.includes(g)))) {
-        if (!byGroup[g]) continue
-        const og = el('optgroup', '', pick)
-        og.label = groupName(g)
-        byGroup[g].sort((a, b) => title(a).localeCompare(title(b))).forEach(id => {
-          const o = el('option', '', og)
-          o.value = id
-          o.textContent = title(id)
-          o.title = describe(id)
-        })
-      }
-      if (prev && !owned.includes(prev)) pick.value = prev
+      ui.fillTraitSelect(pick, Object.keys(list()).filter(id => !owned.includes(id)), list(), title, describe)
     })
   }
 
+  // Rellena el desplegable `pick` con los rasgos `ids`, agrupados y ordenados por
+  // nombre. Conserva lo elegido si sigue en la lista.
+  ui.fillTraitSelect = (pick, ids, defs, title, describe) => {
+    const prev = pick.value
+    pick.innerHTML = ''
+    const byGroup = {}
+    for (const id of ids) { const g = defs[id]?.group; (byGroup[g] = byGroup[g] || []).push(id) }
+    for (const g of GROUP_ORDER.concat(Object.keys(byGroup).filter(g => !GROUP_ORDER.includes(g)))) {
+      if (!byGroup[g]) continue
+      const og = el('optgroup', '', pick)
+      og.label = groupName(g)
+      byGroup[g].sort((a, b) => title(a).localeCompare(title(b))).forEach(id => {
+        const o = el('option', '', og)
+        o.value = id
+        o.textContent = title(id)
+        o.title = describe(id)
+      })
+    }
+    if (prev && ids.includes(prev)) pick.value = prev
+  }
+
   // Rellena `sel` con list() y lo reconstruye solo cuando cambia la lista.
-  // Si el elegido desaparece, elige el primero.
+  // Si el elegido desaparece, elige el primero. Si otra sección cambia la
+  // selección compartida, el desplegable la sigue.
   ui.rosterSelect = (sel, list, getId, setId, label, emptyText) => {
     let sig = ''
     ui.onRefresh(() => {
       const items = list()
       const now = items.map(x => x.id + label(x)).join('|')
-      if (now === sig) return
-      sig = now
-      if (!items.some(x => x.id === getId())) setId(items[0]?.id ?? null)
-      sel.innerHTML = ''
-      if (!items.length) { const o = el('option', '', sel); o.value = ''; o.textContent = emptyText }
-      for (const x of items) { const o = el('option', '', sel); o.value = x.id; o.textContent = label(x) }
-      sel.value = getId() ?? ''
+      if (now !== sig) {
+        sig = now
+        if (!items.some(x => x.id === getId())) setId(items[0]?.id ?? null)
+        sel.innerHTML = ''
+        if (!items.length) { const o = el('option', '', sel); o.value = ''; o.textContent = emptyText }
+        for (const x of items) { const o = el('option', '', sel); o.value = x.id; o.textContent = label(x) }
+      }
+      if (document.activeElement !== sel && sel.value !== String(getId() ?? '')) sel.value = getId() ?? ''
     })
   }
 

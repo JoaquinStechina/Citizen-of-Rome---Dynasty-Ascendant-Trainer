@@ -12,6 +12,7 @@
   "expandAll": "Alles ausklappen",
   "resources": "Ressourcen",
   "family": "Familie",
+  "traitStacks": "Stapelbare Eigenschaften",
   "pets": "Haustiere",
   "estate": "Besitz des Haushalts",
   "multipliers": "Multiplikatoren",
@@ -106,5 +107,10 @@
   "achUnmarkShown": "Angezeigte entfernen",
   "achShownTip": "Betrifft nur die mit dem aktuellen Filter sichtbaren Erfolge",
   "achConfirmUnmark": "{n} freigeschaltete Erfolge entfernen?",
-  "achNote": "Ändert nur die Erfolge im Spiel. An Steam wird nichts gesendet."
+  "achNote": "Ändert nur die Erfolge im Spiel. An Steam wird nichts gesendet.",
+  "noStackable": "Keine stapelbaren Eigenschaften.",
+  "stackCopies": "Kopien der Eigenschaft (0 = entfernen)",
+  "stackMinusTip": "Eine Kopie entfernen (bei 1 Kopie wird die Eigenschaft entfernt)",
+  "stackPlusTip": "Eine Kopie hinzufügen",
+  "stackNote": "Jede zusätzliche Kopie bringt 10 % mehr vom Fertigkeitsbonus. Gesundheit, Fruchtbarkeit und Einnahmen ändern sich durch Kopien nicht (so rechnet das Spiel). Kinder erben die Kopien."
 }

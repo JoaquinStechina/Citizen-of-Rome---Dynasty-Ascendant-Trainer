@@ -158,8 +158,9 @@ function build() {
   window.__corTrainerGridRO = new ResizeObserver(fitColumns)
   window.__corTrainerGridRO.observe(grid)
   const collapsed = ls.get('corTrainerCollapsedV2', {})
-  let order = (ls.get('corTrainerOrder', null) || []).filter(id => SECTION_IDS.includes(id))
-  order = order.concat(SECTION_IDS.filter(id => !order.includes(id)))
+  // Orden guardado; una sección nueva va detrás de la que la precede por defecto.
+  const order = (ls.get('corTrainerOrder', null) || []).filter(id => SECTION_IDS.includes(id))
+  SECTION_IDS.forEach((id, i) => { if (!order.includes(id)) order.splice(i ? order.indexOf(SECTION_IDS[i - 1]) + 1 : 0, 0, id) })
   const applyOrder = () => order.forEach(id => cards[id] && grid.appendChild(cards[id]))
   const moveSection = (id, to) => {
     const from = order.indexOf(id)

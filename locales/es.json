@@ -12,6 +12,7 @@
   "expandAll": "Desplegar todo",
   "resources": "Recursos",
   "family": "Familia",
+  "traitStacks": "Rasgos acumulables",
   "pets": "Mascotas",
   "estate": "Propiedades de la casa",
   "multipliers": "Multiplicadores",
@@ -106,5 +107,10 @@
   "achUnmarkShown": "Quitar los mostrados",
   "achShownTip": "Afecta solo a los logros que se ven con el filtro actual",
   "achConfirmUnmark": "¿Quitar {n} logros conseguidos?",
-  "achNote": "Solo cambia los logros dentro del juego. No se envía nada a Steam."
+  "achNote": "Solo cambia los logros dentro del juego. No se envía nada a Steam.",
+  "noStackable": "No tiene rasgos acumulables.",
+  "stackCopies": "Copias del rasgo (0 = quitarlo)",
+  "stackMinusTip": "Quitar una copia (con 1 copia, quita el rasgo)",
+  "stackPlusTip": "Añadir una copia",
+  "stackNote": "Cada copia extra suma un 10% más del bonus de habilidad. Salud, fertilidad e ingresos no cambian con las copias (así lo calcula el juego). Los hijos heredan las copias."
 }

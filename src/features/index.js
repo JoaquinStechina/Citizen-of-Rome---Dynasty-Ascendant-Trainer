@@ -3,6 +3,7 @@
 module.exports = [
   require('features/resources'),
   require('features/family'),
+  require('features/traitStacks'),
   require('features/pets'),
   require('features/estate'),
   require('features/multipliers'),
