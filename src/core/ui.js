@@ -61,17 +61,19 @@ function createUI() {
   ui.collapsibles = []
 
   // Bloque plegable dentro de una sección: clic en el título para abrir/cerrar.
-  // `key` identifica el bloque para recordar si está plegado (p. ej. 'family.traits').
+  // `key` identifica el bloque para recordar si está plegado (p. ej. 'family.traits');
+  // `folded` = plegado hasta que el jugador lo abra por primera vez.
   // Devuelve el contenedor donde poner el contenido; su título es body.previousSibling.
   const groupState = ls.get(GROUPS_KEY, {})
-  ui.group = (parent, text, key) => {
+  ui.group = (parent, text, key, folded = false) => {
     const head = el('div', 'margin-top:6px;color:#d9bf8c;font-weight:600;cursor:pointer', parent)
     const body = el('div', '', parent)
-    const paint = () => { head.textContent = (groupState[key] ? '▸ ' : '▾ ') + text; body.style.display = groupState[key] ? 'none' : '' }
+    const get = () => groupState[key] ?? folded
+    const paint = () => { head.textContent = (get() ? '▸ ' : '▾ ') + text; body.style.display = get() ? 'none' : '' }
     const set = v => { groupState[key] = v; ls.set(GROUPS_KEY, groupState); paint() }
-    head.onclick = () => set(!groupState[key])
+    head.onclick = () => set(!get())
     paint()
-    ui.collapsibles.push({ set, get: () => !!groupState[key] })
+    ui.collapsibles.push({ set, get })
     return body
   }
 

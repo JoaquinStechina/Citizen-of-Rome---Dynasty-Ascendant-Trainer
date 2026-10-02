@@ -83,6 +83,19 @@ const TR = load('rasgos', req => {
     stackMultiplier: req('7de9').default.traitStackMultiplier, stacks, setStacks }
 })
 
+// Premios y castigos de los eventos (applyStatChanges [2ee0]): si el evento lo
+// pide (scaleByRevenue), dinero × ingresos, influencia × ingresos/8 y prestigio ×
+// ingresos/10 [14ef]; y siempre × el factor de clase [cfed].
+const STATS = load('escalado', req => {
+  const revenue = req('14ef').default, classFactor = req('cfed').default
+  const DIV = { cash: 1, influence: 8, prestige: 10 }
+  return { real: (kind, base, scaled) => base * (scaled ? revenue(S()) / DIV[kind] : 1) * classFactor(S()),
+    signature: () => revenue(S()) + ':' + classFactor(S()) }
+})
+
+// Ventana de evento abierta en el juego: { show, title, message, options }.
+const modal = () => S()?.interactionModal
+
 // Edad en años a partir de mes/año de nacimiento (calendario de 13 meses).
 const AGE = load('edad', req => req('9b55').default)
 
@@ -162,7 +175,7 @@ const ageOf = x => AGE ? AGE(S(), x.birthMonth, x.birthYear) : S().year - x.birt
 const SKILL_MAX = 30
 
 module.exports = {
-  store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf,
+  store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal,
   setAchievements, setAchievementThisRun,
-  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, SKILL_MAX,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, SKILL_MAX,
 }

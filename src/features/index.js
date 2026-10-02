@@ -8,4 +8,5 @@ module.exports = [
   require('features/estate'),
   require('features/multipliers'),
   require('features/achievements'),
+  require('features/warEvents'),
 ]

@@ -42,6 +42,7 @@ Si el juego recarga la página, el trainer vuelve a inyectar el panel automátic
 | **Propiedades de la casa** | Las 22 propiedades, con su límite administrable |
 | **Multiplicadores** | Factor propio del trainer para salud, ingresos, fertilidad, gastos, trabajos, propiedades, etc. |
 | **Logros** | Marcar o quitar logros conseguidos (global y en la partida actual), con buscador y filtro. Solo dentro del juego: no se envía nada a Steam |
+| **Eventos militares** | Árbol de decisiones de los 8 eventos de guerra con corona: probabilidad de morir y de corona, heridas y premios de cada opción, con las cifras reales de tu partida. Cuando aparece uno de estos eventos, el trainer muestra un consejo junto a la ventana, y marca la opción recomendada (se puede desactivar) |
 
 Todos los valores se pueden escribir a mano (Enter aplica, Esc cancela) o cambiar con botones rápidos.
 
@@ -59,7 +60,7 @@ Idioma, posición, tamaño, orden y lo que esté plegado se recuerdan entre sesi
 
 ## Mecánicas del juego
 
-La carpeta [`docs/`](docs/README.md) reúne lo descubierto en el código del juego: educación, trabajos, mascotas, propiedades, logros y mecánicas generales (clases, costos, fórmulas).
+La carpeta [`docs/`](docs/README.md) reúne lo descubierto en el código del juego: educación, trabajos, mascotas, propiedades, logros, eventos militares y mecánicas generales (clases, costos, fórmulas).
 
 ## Estructura del código
 
@@ -76,9 +77,12 @@ src/
 │  ├─ selection.js     personaje y mascota elegidos (compartidos entre secciones)
 │  ├─ storage.js       preferencias en localStorage
 │  └─ dom.js           el(), fmt(), estilos comunes
+├─ war/
+│  ├─ events.js        árboles de decisión de los eventos militares (copiados del juego)
+│  └─ analyze.js       probabilidades, efectos y opción recomendada de cada opción
 └─ features/           una sección del panel por archivo
    ├─ index.js         lista y orden por defecto de las secciones
-   └─ resources.js, family.js, traitStacks.js, pets.js, estate.js, multipliers.js, achievements.js
+   └─ resources.js, family.js, traitStacks.js, pets.js, estate.js, multipliers.js, achievements.js, warEvents.js
 locales/               un JSON de textos por idioma (es, pt, en, ru, fr, de)
 docs/                  mecánicas del juego descubiertas en su código
 ```
@@ -129,6 +133,8 @@ Si una sección lanza un error al construirse, el resto del panel sigue funciona
 ### Si una actualización del juego rompe algo
 
 Los identificadores internos del juego (`'50ab'`, `'a822'`, `'fc68'`…) están **solo en `src/game.js`**, agrupados por tema (rasgos, trabajos, mascotas, propiedades, multiplicadores). Si un grupo no carga, el panel muestra "No disponible en esta versión del juego" en lo que dependa de él, y la consola del juego (F12, o las DevTools por el puerto de depuración) muestra `[trainer] <grupo> no disponible`.
+
+Los árboles de los eventos militares están copiados del código del juego en `src/war/events.js`; si una actualización cambia un evento, hay que corregirlo ahí.
 
 ## Notas
 
