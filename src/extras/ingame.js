@@ -227,6 +227,7 @@ const EVENTS = {
         })),
         options: [payOption(), cancel()],
       })
+      setTimeout(orderStyle, 50) // la ventana se abre en el siguiente ciclo
     },
     // Cambio en un desplegable: se guarda y se actualiza el precio del botón de pagar.
     set(_, { field, option }) {
@@ -260,6 +261,26 @@ function payOption() {
 // Dinero en statChanges: el juego lo multiplica por el factor de clase, así que se
 // divide antes para que se cobre (o dé) exactamente `real`.
 function money(real) { return { cash: real / api().calculateScaleByClassFactor() } }
+
+// Desplegables largos del pedido (los rasgos son ~55): con un alto máximo y barra
+// vertical para recorrerlos. Solo mientras está abierta la ventana del pedido (clase
+// en <body>), para no cambiar las demás ventanas del juego.
+const MM_CLASS = 'cor-trainer-mm-open', MM_STYLE = 'cor-trainer-mm-style'
+const isOrderOpen = () => { const m = S()?.interactionModal; return !!m?.show && m.options?.[0]?.action?.event === ev('matchmaker') }
+function orderStyle() {
+  if (!document.getElementById(MM_STYLE)) {
+    const st = document.createElement('style')
+    st.id = MM_STYLE
+    st.textContent = `
+body.${MM_CLASS} #interactionModal .dropdown-menu{max-height:min(45vh,420px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:auto}
+body.${MM_CLASS} #interactionModal .dropdown-menu::-webkit-scrollbar{width:12px}
+body.${MM_CLASS} #interactionModal .dropdown-menu::-webkit-scrollbar-track{background:rgba(0,0,0,.12);border-radius:6px}
+body.${MM_CLASS} #interactionModal .dropdown-menu::-webkit-scrollbar-thumb{background:#8a7350;border-radius:6px;border:2px solid transparent;background-clip:padding-box}
+body.${MM_CLASS} #interactionModal .dropdown-menu::-webkit-scrollbar-thumb:hover{background-color:#b08d57}`
+    document.head.appendChild(st)
+  }
+  document.body.classList.toggle(MM_CLASS, isOrderOpen())
+}
 
 // Botón de la casamentera en "Arrange Betrothal", junto a "Pay to look for other
 // matches". La vista es del juego, así que el botón se vuelve a poner si el juego
@@ -331,6 +352,7 @@ function sync() {
     }
   }
   betrothalButton()
+  orderStyle()
   // Boda con Attica: una ventana del juego, como en el mod (una sola vez).
   if (enabled('scenario') && A.atticaDue()) {
     const p = game.player()

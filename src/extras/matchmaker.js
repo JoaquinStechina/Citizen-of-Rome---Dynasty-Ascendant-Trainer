@@ -33,11 +33,14 @@ const rint = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min
 // Tarifa de la casamentera: 5% de tu dinero, mínimo 20 000 (como el mod).
 const fee = () => Math.round(Math.max(20000, S().current.cash * 0.05))
 
-// Rasgos que se pueden pedir: los de los grupos con precio, ordenados por grupo y nombre.
+// Rasgos que se pueden pedir: los de los grupos con precio, ordenados por grupo y
+// nombre. Del grupo "skill" se quitan los cargos (former…), Senator y Novus Homo,
+// que el juego da por la carrera política o el origen.
+const NOT_ORDERABLE = id => /^former/.test(id) || ['senator', 'novusHomo'].includes(id)
 const orderable = () => {
   if (!game.TR) return []
   const groups = Object.keys(TRAIT_COST), title = id => game.TR.titles[id]?.title || id
-  return Object.keys(game.TR.list).filter(id => groups.includes(game.TR.list[id].group))
+  return Object.keys(game.TR.list).filter(id => groups.includes(game.TR.list[id].group) && !NOT_ORDERABLE(id))
     .sort((a, b) => groups.indexOf(game.TR.list[a].group) - groups.indexOf(game.TR.list[b].group) || title(a).localeCompare(title(b)))
 }
 
