@@ -76,6 +76,35 @@ Cuando Roma está en guerra pueden aparecer 8 eventos con árbol de decisiones. 
 
 La opción recomendada es la de menos riesgo de morir; a igual riesgo, la de más probabilidad de corona, menos heridas y más prestigio e influencia. Detalles y mejor camino de cada evento: [Eventos militares](eventos-militares.md).
 
+## Extras
+
+Lo que hacen los [mods de ejemplo oficiales](https://github.com/CitizenOfRomeDynastyAscendant/example-mods) y el mod de temas de [Prahlad](https://github.com/prahlad-swarnkar/CORmods), pero desde el trainer.
+
+Activar los mods en el juego desactiva los logros de la partida para siempre. El trainer no los activa: usa las mismas funciones que el propio juego usa internamente, así que **los logros del juego y de Steam siguen activos** ([detalles](mecanicas-generales.md#logros-y-modo-mods)).
+
+Cada opción se puede usar desde el panel o **desde la interfaz del juego**, como en los mods originales:
+
+- **En cada personaje:** botones de Jugar como, Divorcio y Dar en adopción, solo en quienes pueden usarlos.
+- **En la pantalla principal:** botones de Tema, Nueva dinastía y Escenarios.
+- Los botones abren **ventanas del juego**, con los costos al lado de cada opción y su aviso "You may not be able to afford this" si no te alcanza.
+- En el bloque **"Botones en el juego"** se elige cuáles mostrar; vienen todos activados.
+- Los botones quedan guardados en la partida, pero **sin el trainer conectado no se muestran**, y vuelven al conectarlo.
+
+| Bloque | Qué hace |
+|---|---|
+| **Tema** | Colores *Green*, *Mono Mix* o *Vestalia*, o los del juego, y un botón para el **modo oscuro** del juego (el mismo ajuste de Settings). Los temas se ven mejor sin modo oscuro. El trainer recuerda el tema elegido. |
+| **Jugar como** | Pasas a controlar a otro personaje vivo, de la casa o de fuera. Su casa pasa a ser la tuya y tu personaje actual sigue en la partida. |
+| **Divorcio** | Separa a una pareja de la casa. |
+| **Dar en adopción** | Un hijo de hasta 15 años, sin pareja, que no esté estudiando ni de viaje, deja la familia. Como en el mod, el juego lo registra como una muerte y muestra la ventana del funeral. |
+| **Nueva dinastía** | Funda una rama con otro nomen, cognomen y origen (plebeyo, *novus homo*, patricio o liberto), con el mismo prestigio. Pasan a ella tú y tus descendientes que llevan tu apellido; el resto de la familia lo conserva. El mod original, en cambio, renombra la dinastía entera. |
+| **Escenarios** | Empiezas con la familia de Julio César (661 A.U.C.), Marco Agripa (716) o la madre de Marco Antonio (683). La fecha, el dinero, la influencia y las propiedades pasan a ser los del escenario. Tu familia actual sigue en la partida, pero ya no es tu casa. En el escenario de Agripa, a los 25½–26½ años aparece la ventana de la boda con Attica, como en el mod (en el panel, si desactivas el botón de Escenarios). |
+
+- **Costos.** Divorciar y dar en adopción cobran lo mismo que los mods: el juego multiplica la cantidad por tu factor de clase, y en el divorcio, el dinero también por tus ingresos. Por eso puede costar mucho; el panel muestra la cifra real y avisa si te quedarías en negativo. La casilla "Cobrar los costos de los mods originales" permite hacerlo gratis.
+- **No se pueden deshacer.** Las acciones piden confirmación. Antes de jugar un escenario, guarda en otra ranura.
+- Si tu partida va por un año posterior al del escenario, la fecha retrocede, como en el mod.
+
+Los datos de los escenarios vienen de los mods de ejemplo de Sathvik Software Solutions, con licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) y la condición *Commons Clause* (no se pueden vender). Los temas son del mod "theme" de Prahlad.
+
 ## Otro puerto
 
 Para usar otro puerto en vez del 9222, pon el mismo número en las opciones de lanzamiento del juego y en la variable `CDP_PORT`. En PowerShell:

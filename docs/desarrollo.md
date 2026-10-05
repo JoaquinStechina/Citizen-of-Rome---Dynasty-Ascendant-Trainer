@@ -39,9 +39,15 @@ src/
 ├─ war/
 │  ├─ events.js        árboles de decisión de los eventos militares (copiados del juego)
 │  └─ analyze.js       probabilidades, efectos y opción recomendada de cada opción
+├─ extras/
+│  ├─ actions.js       acciones de los mods (jugar como, divorcio, adopción, dinastía, escenarios)
+│  ├─ ingame.js        botones y ventanas de esas acciones dentro del juego
+│  ├─ themes.js        temas de color (del mod "theme" de Prahlad)
+│  ├─ scenarios.js     datos de los escenarios (del mod oficial "Play a Scenario")
+│  └─ icons.js         iconos de los botones (de los mods de ejemplo)
 └─ features/           una sección del panel por archivo
    ├─ index.js         lista y orden por defecto de las secciones
-   └─ resources.js, family.js, traitStacks.js, pets.js, estate.js, multipliers.js, achievements.js, warEvents.js
+   └─ resources.js, family.js, traitStacks.js, pets.js, estate.js, multipliers.js, achievements.js, warEvents.js, extras.js
 locales/               un JSON de textos por idioma (es, pt, en, ru, fr, de)
 docs/                  guías del trainer y mecánicas del juego
 ```
@@ -101,5 +107,7 @@ La selección de personaje o mascota está en `core/selection` (`sel.character()
 ## Si una actualización del juego rompe algo
 
 - **Identificadores internos.** Los del juego (`'50ab'`, `'a822'`, `'fc68'`…) están **solo en `src/game.js`**, agrupados por tema. Si un grupo no carga, el panel muestra "No disponible en esta versión del juego" en lo que dependa de él. La consola del juego (F12, o las DevTools por el puerto de depuración) muestra `[trainer] <grupo> no disponible`.
+- **API de mods.** La sección Extras usa `game.DA.api()`: la API `daapi` del juego `[6174]` creada con `isDAAPI: false`, como en los eventos del propio juego. Nunca hay que llamar a `setupDAAPI` ni poner `settings.enableMods`, porque marcan la partida con `flagUsedMods` y desactivan sus logros para siempre.
+- **Botones en el juego.** Los botones y ventanas del juego llaman a sus métodos por nombre de evento, a través de `invokeMethod` `[bc91]` y del contexto de eventos `[baa2]`. `game.HOOK` envuelve ese contexto en la caché de webpack para que los eventos `trainer/<nombre>` lleguen a las funciones registradas con `HOOK.register`; los demás eventos no cambian. Cada botón lleva un `preCheck` del trainer, y sin el trainer cargado ese `preCheck` falla y el juego oculta el botón. Si se cambian los botones, sube `VERSION` en `extras/ingame.js` para que se rehagan.
 - **Eventos militares.** Sus árboles, con las tiradas que fuerzan cada resultado, están copiados del código del juego en `src/war/events.js`. Si una actualización cambia un evento, hay que corregirlo ahí.
 - **Mecánicas.** Las notas de [docs](README.md) indican el módulo de cada fórmula, para volver a comprobarlas.

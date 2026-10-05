@@ -86,7 +86,8 @@ Cuatro habilidades: **inteligencia, administración (stewardship), elocuencia y 
 
 ## Logros y modo mods
 
-- Activar los **mods** del juego (sistema DAAPI) marca la partida con `flagUsedMods` y **desactiva los logros** de esa partida para siempre.
+- Activar los **mods** del juego (sistema DAAPI) marca la partida con `flagUsedMods` y **desactiva los logros** de esa partida para siempre. Lo hace `setupDAAPI` `[e35e]` al encender la opción, y `addAchievement` `[c391]` no envía nada si `flagEasyMode`, `flagSandboxMode` o `flagUsedMods` están puestos.
+- La API de los mods (`daapi`) la crea la fábrica `[6174]`. El propio juego la usa en sus eventos con `isDAAPI: false` (por ejemplo, frugalidad `[ea0b]`), y así no marca la partida. El trainer la usa igual en la sección Extras.
 - Los modos fácil y sandbox también impiden desbloquear logros de Steam.
 - Ver [Logros](logros.md).
 

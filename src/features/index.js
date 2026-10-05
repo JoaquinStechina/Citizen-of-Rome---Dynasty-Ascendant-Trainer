@@ -9,4 +9,5 @@ module.exports = [
   require('features/multipliers'),
   require('features/achievements'),
   require('features/warEvents'),
+  require('features/extras'),
 ]

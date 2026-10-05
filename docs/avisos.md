@@ -26,11 +26,11 @@ Haz una copia de tus partidas antes de cambios grandes. Están en:
 Documentos\CitizenOfRomeDynastyAscendant\saves
 ```
 
-Hay cambios que no tienen vuelta atrás, como forzar la muerte de un personaje.
+Hay cambios que no tienen vuelta atrás, como forzar la muerte de un personaje, o en la sección Extras: dar en adopción, divorciar y jugar un escenario.
 
 ## Modo mods
 
-El trainer **no activa el modo mods** del juego, que es lo que desactiva los logros de la partida.
+El trainer **no activa el modo mods** del juego, que es lo que desactiva los logros de la partida. Las opciones de la sección Extras hacen lo mismo que los mods de ejemplo del juego, pero usan sus funciones como las usa el propio juego, sin activar los mods, así que los logros siguen activos.
 
 ## Versión del juego
 

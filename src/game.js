@@ -134,6 +134,39 @@ const ACH = load('logros', req => {
   return { list: D.list, groups: D.groups, titles: typeof L === 'function' ? L() : L }
 })
 
+// API de mods del juego (daapi) [6174], creada como la usa el propio juego en sus
+// eventos (isDAAPI: false, p. ej. household/enforceAusterity [ea0b]). Así no se
+// activa el modo mods (setupDAAPI [e35e]), que marca la partida con
+// current.flagUsedMods y bloquea los logros para siempre [c391]. api() se crea en
+// cada uso porque se queda con el estado con el que se creó (cargar una partida lo
+// reemplaza). newId() genera ids como los del juego [e381].
+const DA = load('daapi', req => {
+  const make = req('6174').a
+  return { api: () => make({ state: S(), dispatch: store().dispatch, commit: store().commit }, { isDAAPI: false }), newId: req('e381').default }
+})
+
+// Eventos del trainer dentro del juego. Los botones (acciones) y las ventanas del
+// juego llaman a sus métodos por nombre de evento: invokeMethod [bc91] los busca en
+// el contexto de eventos [baa2]. Se envuelve ese contexto en la caché de webpack
+// para que 'trainer/<nombre>' llegue a window.__corEvents[<nombre>] (se actualiza
+// en cada inyección); los demás eventos siguen igual. Si el trainer no está
+// cargado, esos eventos no existen y el juego solo lo anota en la consola.
+const HOOK = load('eventos', req => {
+  const mod = req.c?.baa2
+  if (!mod) throw new Error('falta el módulo baa2')
+  if (!mod.exports.__cor) {
+    const orig = mod.exports, PREFIX = './trainer/'
+    const wrap = key => {
+      const ev = typeof key === 'string' && key.startsWith(PREFIX) && window.__corEvents?.[key.slice(PREFIX.length)]
+      return ev ? { default: ev } : orig(key)
+    }
+    Object.assign(wrap, { keys: orig.keys, resolve: orig.resolve, id: orig.id, __cor: true })
+    mod.exports = wrap
+  }
+  window.__corEvents = window.__corEvents || {}
+  return { register: (name, ev) => { window.__corEvents[name] = ev }, event: name => 'trainer/' + name }
+})
+
 // Marca o desmarca logros como conseguidos dentro del juego (para Steam, ver
 // unlockSteam). No se usa la acción addAchievement del juego porque tiene efectos
 // secundarios (cuenta el logro en la partida y a veces quita Stressed/Depressed).
@@ -209,5 +242,5 @@ const SKILL_MAX = 30
 module.exports = {
   store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal, chooseOption,
   setAchievements, setAchievementThisRun, steamBlocked, unlockSteam,
-  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, SKILL_MAX,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SKILL_MAX,
 }
