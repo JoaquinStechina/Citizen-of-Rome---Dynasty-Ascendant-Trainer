@@ -138,11 +138,12 @@ const EVENTS = {
         title: t('xTheme'), image: ICONS.theme, message: t('xThemeMsg'),
         dropdowns: [{
           title: t('xTheme'), selected: Math.max(0, ids.indexOf(THEMES.current())),
-          options: ids.map(id => ({ label: id ? THEMES.LIST[id].name : t('xThemeGame'), value: id })),
+          options: ids.map(id => ({ label: id ? THEMES.label(id) : t('xThemeGame'), value: id })),
           onChange: call('theme', 'pick'),
         }],
         options: [{ text: '☾ ' + t('xDarkModeToggle'), action: call('theme', 'dark') }, { text: t('xOk') }],
       })
+      setTimeout(orderStyle, 50) // barra en la lista de temas
     },
     pick: (_, { option }) => THEMES.apply(option?.value || ''),
     dark: ({ dispatch }) => dispatch('toggleSetting', { setting: 'darkMode' }),
@@ -262,11 +263,14 @@ function payOption() {
 // divide antes para que se cobre (o dé) exactamente `real`.
 function money(real) { return { cash: real / api().calculateScaleByClassFactor() } }
 
-// Desplegables largos del pedido (los rasgos son ~55): con un alto máximo y barra
-// vertical para recorrerlos. Solo mientras está abierta la ventana del pedido (clase
-// en <body>), para no cambiar las demás ventanas del juego.
+// Desplegables largos de las ventanas del trainer (rasgos del pedido, temas): con un
+// alto máximo y barra vertical para recorrerlos. Solo mientras está abierta una
+// ventana del trainer con desplegables (clase en <body>), para no cambiar las del juego.
 const MM_CLASS = 'cor-trainer-mm-open', MM_STYLE = 'cor-trainer-mm-style'
-const isOrderOpen = () => { const m = S()?.interactionModal; return !!m?.show && m.options?.[0]?.action?.event === ev('matchmaker') }
+const isOrderOpen = () => {
+  const m = S()?.interactionModal
+  return !!m?.show && !!m.dropdowns?.some(d => (d.onChange?.event || '').startsWith(ev('')))
+}
 function orderStyle() {
   if (!document.getElementById(MM_STYLE)) {
     const st = document.createElement('style')

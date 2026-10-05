@@ -93,7 +93,7 @@ Cada opción se puede usar desde el panel o **desde la interfaz del juego**, com
 
 | Bloque | Qué hace |
 |---|---|
-| **Tema** | 11 temas de color o los del juego, y un botón para el **modo oscuro** del juego (el mismo ajuste de Settings). *Green*, *Mono Mix* y *Vestalia* son del mod de Prahlad; *Imperial Purple*, *Marble & Gold*, *Pompeian Red*, *Mare Nostrum*, *Olive Grove*, *Legion*, *Saturnalia* (oscuro) y *High Contrast*, del trainer. Todos se leen con o sin el modo oscuro. El trainer recuerda el tema elegido. |
+| **Tema** | 20 temas de color o los del juego, y un botón para el **modo oscuro** del juego (el mismo ajuste de Settings). Claros: *Green*, *Mono Mix* y *Vestalia* (del mod de Prahlad), *Imperial Purple*, *Marble & Gold*, *Pompeian Red*, *Mare Nostrum*, *Olive Grove*, *Legion* y *High Contrast*. Oscuros (marcados con ☾): *Saturnalia*, *Nox*, *Vesuvius*, *Catacombs*, *Tyrian Night*, *Sacred Grove*, *Bronze Age*, *Neptune* y *High Contrast Dark*. Todos se leen con o sin el modo oscuro. El trainer recuerda el tema elegido. |
 | **Jugar como** | Pasas a controlar a otro personaje vivo, de la casa o de fuera. Su casa pasa a ser la tuya y tu personaje actual sigue en la partida. |
 | **Divorcio** | Separa a una pareja de la casa. |
 | **Dar en adopción** | Un hijo de hasta 15 años, sin pareja, que no esté estudiando ni de viaje, deja la familia. Como en el mod, el juego lo registra como una muerte y muestra la ventana del funeral. |

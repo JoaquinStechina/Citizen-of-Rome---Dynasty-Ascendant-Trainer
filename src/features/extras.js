@@ -59,7 +59,7 @@ module.exports = {
     for (const id of ['', ...Object.keys(THEMES.LIST)]) {
       const o = el('option', '', theme.s)
       o.value = id
-      o.textContent = id ? THEMES.LIST[id].name : t('xThemeGame')
+      o.textContent = id ? THEMES.label(id) : t('xThemeGame')
     }
     theme.s.onchange = () => THEMES.apply(theme.s.value)
     const dark = ui.button(theme.line, '', () => store().dispatch('toggleSetting', { setting: 'darkMode' }), t('xDarkModeTip'))
