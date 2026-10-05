@@ -42,6 +42,8 @@ src/
 ├─ extras/
 │  ├─ actions.js       acciones de los mods (jugar como, divorcio, adopción, dinastía, escenarios)
 │  ├─ ingame.js        botones y ventanas de esas acciones dentro del juego
+│  ├─ bank.js          préstamos del Banco de Roma (del mod de peritiSumus)
+│  ├─ matchmaker.js    pedido a la casamentera (basada en el mod "coemptio" de peritiSumus)
 │  ├─ themes.js        temas de color (del mod "theme" de Prahlad)
 │  ├─ scenarios.js     datos de los escenarios (del mod oficial "Play a Scenario")
 │  └─ icons.js         iconos de los botones (de los mods de ejemplo)
@@ -109,5 +111,6 @@ La selección de personaje o mascota está en `core/selection` (`sel.character()
 - **Identificadores internos.** Los del juego (`'50ab'`, `'a822'`, `'fc68'`…) están **solo en `src/game.js`**, agrupados por tema. Si un grupo no carga, el panel muestra "No disponible en esta versión del juego" en lo que dependa de él. La consola del juego (F12, o las DevTools por el puerto de depuración) muestra `[trainer] <grupo> no disponible`.
 - **API de mods.** La sección Extras usa `game.DA.api()`: la API `daapi` del juego `[6174]` creada con `isDAAPI: false`, como en los eventos del propio juego. Nunca hay que llamar a `setupDAAPI` ni poner `settings.enableMods`, porque marcan la partida con `flagUsedMods` y desactivan sus logros para siempre.
 - **Botones en el juego.** Los botones y ventanas del juego llaman a sus métodos por nombre de evento, a través de `invokeMethod` `[bc91]` y del contexto de eventos `[baa2]`. `game.HOOK` envuelve ese contexto en la caché de webpack para que los eventos `trainer/<nombre>` lleguen a las funciones registradas con `HOOK.register`; los demás eventos no cambian. Cada botón lleva un `preCheck` del trainer, y sin el trainer cargado ese `preCheck` falla y el juego oculta el botón. Si se cambian los botones, sube `VERSION` en `extras/ingame.js` para que se rehagan.
+- **Ventana "Arrange Betrothal".** El botón de la casamentera se agrega al DOM de esa vista del juego (`game.betrothalView()`) y se vuelve a poner si el juego la redibuja. Sus candidatos se crean con el generador del juego (`game.SPOUSES`) y se ponen al principio de `current.generatedPotentialSpouseCharacterIds`, que es de donde la vista saca su lista.
 - **Eventos militares.** Sus árboles, con las tiradas que fuerzan cada resultado, están copiados del código del juego en `src/war/events.js`. Si una actualización cambia un evento, hay que corregirlo ahí.
 - **Mecánicas.** Las notas de [docs](README.md) indican el módulo de cada fórmula, para volver a comprobarlas.

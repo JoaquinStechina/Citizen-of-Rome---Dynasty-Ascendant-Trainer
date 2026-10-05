@@ -1,6 +1,7 @@
 // Extras: lo que hacen los mods de ejemplo del juego (Give For Adoption, New
-// Dynasty?, Play As, Divorce, Play a Scenario) y los temas de color del mod
-// "theme", desde el panel y con botones dentro del juego (extras/ingame). Se usa
+// Dynasty?, Play As, Divorce, Play a Scenario), los temas de color del mod "theme"
+// y el banco y la casamentera de peritiSumus (bank_of_rome, coemptio), desde el
+// panel y con botones dentro del juego (extras/ingame). Se usa
 // la API de mods del juego sin activar el modo mods, así que los logros del juego y
 // de Steam siguen activos. Los costos son los de los mods y se pueden desactivar.
 const { el, CTRL_CSS } = require('core/dom')
@@ -10,6 +11,10 @@ const A = require('extras/actions')
 const INGAME = require('extras/ingame')
 const THEMES = require('extras/themes')
 const SCENARIOS = require('extras/scenarios')
+const BANK = require('extras/bank')
+const MM = require('extras/matchmaker')
+
+const fmt = n => Math.round(n).toLocaleString()
 
 module.exports = {
   id: 'extras',
@@ -42,7 +47,7 @@ module.exports = {
     // --- Botones en el juego ------------------------------------------------------
     const gameBox = ui.group(body, t('xInGame'), 'extras.inGame')
     const gameGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));column-gap:8px', gameBox)
-    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario' }
+    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario', bank: 'xBank', matchmaker: 'xMatchmaker' }
     for (const f of INGAME.FEATURES) checkbox(gameGrid, t(TITLES[f]), INGAME.enabled(f), v => INGAME.setEnabled(f, v))
     ui.note(gameBox, t('xInGameNote'))
     // Pone o quita los botones del juego en cada refresco (solo toca lo que cambia).
@@ -189,5 +194,64 @@ module.exports = {
     ui.button(atticaBtns, t('xAtticaYes'), () => atticaDecide(true))
     ui.button(atticaBtns, t('xAtticaNo'), () => atticaDecide(false))
     ui.onRefresh(() => { attica.style.display = !INGAME.enabled('scenario') && A.atticaDue() ? '' : 'none' })
+
+    // --- Banco de Roma ------------------------------------------------------------
+    const bankBox = ui.group(body, t('xBank'), 'extras.bank')
+    const bankInfo = el('div', 'margin:2px 0', bankBox)
+    const borrowLine = el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:2px 0', bankBox)
+    const repayLine = el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:2px 0', bankBox)
+    const bankWhy = ui.note(bankBox, '')
+    ui.note(bankBox, t('xBankNote', { rate: (BANK.RATE * 100).toFixed(1) }))
+    let bankSig = ''
+    ui.onRefresh(force => {
+      const debt = BANK.debt(), can = BANK.canBorrow(), amounts = BANK.amounts()
+      bankInfo.textContent = debt > 0 ? t('xBankDebt', { debt: fmt(debt), interest: fmt(BANK.interest()) }) : t('xBankNoDebt')
+      bankWhy.textContent = debt > 0 || can ? '' : t('xBankWhy')
+      const now = [debt, can, amounts.join()].join('|')
+      if (now === bankSig && !force) return
+      bankSig = now
+      borrowLine.innerHTML = ''
+      repayLine.innerHTML = ''
+      if (can) for (const n of amounts) ui.button(borrowLine, t('xBankTake', { amount: fmt(n) }), () => {
+        if (!BANK.canBorrow()) return
+        S().current.cash += n
+        BANK.borrow(n)
+      })
+      // Abonos anticipados: sin interés (solo se cobra en el pago anual).
+      if (debt > 0) for (const n of new Set([1000, 5000, debt])) {
+        if (n > debt) continue
+        ui.button(repayLine, n === debt ? t('xBankPayOff', { amount: fmt(debt) }) : t('xBankRepay', { amount: fmt(n) }), () => {
+          const amount = Math.min(n, BANK.debt())
+          S().current.cash -= amount
+          BANK.repay(amount)
+        })
+      }
+    })
+
+    // --- Casamentera --------------------------------------------------------------
+    const mmBox = ui.group(body, t('xMatchmaker'), 'extras.matchmaker')
+    // Se usa desde la ventana "Arrange Betrothal" del juego; aquí se ven los candidatos
+    // encargados que siguen disponibles, con sus habilidades y rasgos.
+    ui.note(mmBox, t('xMmNote'))
+    const mmList = el('div', 'margin-top:4px', mmBox)
+    let mmSig = ''
+    ui.onRefresh(force => {
+      const groups = game.household().map(ch => [ch, MM.ordered(ch.id)]).filter(([, l]) => l.length)
+      const now = groups.map(([ch, l]) => ch.id + ':' + l.map(c => c.id + Math.round(game.ageOf(c))).join(',')).join('|')
+      if (now === mmSig && !force) return
+      mmSig = now
+      mmList.innerHTML = ''
+      if (!groups.length) { ui.note(mmList, t('xMmNone')); return }
+      for (const [ch, list] of groups) {
+        ui.subheading(mmList, t('xMmFor', { name: A.name(ch) }))
+        for (const c of list) {
+          const row = el('div', 'border-top:1px solid #5a4630;padding:3px 0', mmList)
+          el('div', 'font-weight:600', row).textContent = withAge(c) + ' · ' + t('xH_' + (S().dynasties[c.dynastyId]?.heritage || ''))
+          el('div', 'font-size:12px;font-variant-numeric:tabular-nums', row).textContent =
+            MM.SKILLS.map(k => t(k) + ' ' + Math.round(c.skills[k])).join(' · ')
+          el('div', 'font-size:11px;opacity:.8', row).textContent = (c.traits || []).map(id => game.TR?.titles[id]?.title || id).join(', ') || t('noTraits')
+        }
+      }
+    })
   },
 }

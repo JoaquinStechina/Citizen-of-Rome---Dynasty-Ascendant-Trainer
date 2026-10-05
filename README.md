@@ -16,7 +16,7 @@ Probado con la versión **1.6.36** del juego.
 | [Multiplicadores](docs/guia.md#multiplicadores) | Un factor propio para salud, ingresos, fertilidad, gastos, trabajos, propiedades… |
 | [Logros](docs/guia.md#logros) | Marcar o quitar logros, también en Steam |
 | [Eventos militares](docs/guia.md#eventos-militares) | Qué pasa con cada opción de los eventos de guerra (muerte, corona, heridas, premios), con un consejo junto a la ventana del evento y botones para **forzar el resultado** |
-| [Extras](docs/guia.md#extras) | Lo que hacen los mods del juego (temas de color y modo oscuro, jugar como otro personaje, divorcio, dar en adopción, nueva dinastía y escenarios históricos), desde el panel o con botones dentro del juego, **sin activar los mods**, así que los logros siguen activos |
+| [Extras](docs/guia.md#extras) | Lo que hacen los mods del juego (temas de color y modo oscuro, jugar como otro personaje, divorcio, dar en adopción, nueva dinastía, escenarios históricos, préstamos del Banco de Roma y una casamentera a medida en la ventana "Arrange Betrothal"), desde el panel o con botones dentro del juego, **sin activar los mods**, así que los logros siguen activos |
 
 El panel está en 6 idiomas (español, portugués, inglés, ruso, francés y alemán), se mueve, se redimensiona y sus secciones se pliegan y reordenan. **F8** lo muestra u oculta.
 

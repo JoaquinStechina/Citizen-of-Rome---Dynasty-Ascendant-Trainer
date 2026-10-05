@@ -1,6 +1,8 @@
 // Botones de los mods dentro de la interfaz del juego, como los ponen los mods
-// originales: en cada personaje (Jugar como, Divorcio, Dar en adopción) y en la
-// pantalla principal (Tema, Nueva dinastía, Escenarios). Abren ventanas del juego.
+// originales: en cada personaje (Jugar como, Divorcio, Dar en adopción, Casamentera,
+// y Pedir un préstamo en el jugador) y en la pantalla principal (Tema, Nueva
+// dinastía, Escenarios). Abren ventanas del juego. El cobro anual del banco también
+// es una ventana del juego.
 //
 // Los botones se guardan en la partida (characters[id].actions, current.actions)
 // como cualquier acción del juego, pero sus métodos son eventos 'trainer/...' que
@@ -14,6 +16,8 @@ const A = require('extras/actions')
 const THEMES = require('extras/themes')
 const SCENARIOS = require('extras/scenarios')
 const ICONS = require('extras/icons')
+const BANK = require('extras/bank')
+const MM = require('extras/matchmaker')
 
 const { t } = i18n
 const KEY = 'corTrainerInGame'
@@ -22,8 +26,8 @@ const KEY = 'corTrainerInGame'
 const VERSION = 1
 const sig = () => VERSION + ':' + i18n.lang()
 // Bloques que se pueden mostrar en el juego, en el orden del panel.
-const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario']
-const CHARACTER = ['playAs', 'divorce', 'adopt']
+const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario', 'bank', 'matchmaker']
+const CHARACTER = ['playAs', 'divorce', 'adopt', 'bank']
 const ACTION = f => 'trainer_' + f // clave de la acción en el juego
 
 const enabled = f => ls.get(KEY, {})[f] ?? true
@@ -42,7 +46,44 @@ const VISIBLE = {
   playAs: id => enabled('playAs') && A.canPlayAs(S().characters[id]),
   divorce: id => enabled('divorce') && A.canDivorce(S().characters[id]),
   adopt: id => enabled('adopt') && A.canAdopt(S().characters[id]),
+  // Como el mod: en el jugador, sin deuda y con menos de 500.
+  bank: id => enabled('bank') && id === S().current.id && BANK.canBorrow(),
 }
+const fmt = n => Math.round(n).toLocaleString()
+const traitName = id => game.TR?.titles[id]?.title || id
+
+// Formulario del pedido a la casamentera, como desplegables de la ventana del juego.
+// Cada entrada: [campo, título, opciones [{ label, value }]].
+const orderFields = () => {
+  const any = t('xMmAny')
+  const fields = [
+    ['count', t('xMmCount'), MM.COUNTS.map((n, i) => ({ label: String(n), value: i }))],
+    ['age', t('age'), MM.AGES.map(([a, b], i) => ({ label: a + '–' + b, value: i }))],
+    ['heritage', t('xHeritage'), MM.HERITAGES.map((h, i) => ({ label: h ? t('xH_' + h) : any, value: i }))],
+    ...MM.SKILLS.map(k => ['skill:' + k, t(k) + ' ' + t('xMmMin'), MM.SKILL_MINS.map((m, i) => ({ label: m ? m + '+' : any, value: i }))]),
+  ]
+  const traits = [{ label: '—', value: '' }, ...MM.orderable().map(id => ({ label: traitName(id) + ' (' + t('g_' + game.TR.list[id].group) + ')', value: id }))]
+  for (let i = 0; i < MM.TRAIT_SLOTS; i++) fields.push(['trait:' + i, t('xMmTrait') + ' ' + (i + 1), traits])
+  fields.push(['noBad', t('xMmNoBad'), [{ label: t('xNo'), value: false }, { label: t('xYes'), value: true }]])
+  return fields
+}
+const specGet = (spec, field) => {
+  const [k, sub] = field.split(':')
+  return k === 'skill' ? spec.skills[sub] : k === 'trait' ? spec.traits[sub] : spec[k]
+}
+const specSet = (spec, field, v) => {
+  const [k, sub] = field.split(':')
+  if (k === 'skill') spec.skills[sub] = v
+  else if (k === 'trait') spec.traits[sub] = v
+  else spec[k] = v
+}
+// Texto del precio: total y desglose.
+const quoteText = q => q.items.map(({ key, cost }) => {
+  const [k, sub] = key.split(':')
+  const name = k === 'fee' ? t('xMmFeeItem') : k === 'count' ? t('xMmCount') : k === 'heritage' ? t('xHeritage') :
+    k === 'noBad' ? t('xMmNoBad') : k === 'trait' ? traitName(sub) : t(k)
+  return name + ' ' + fmt(cost)
+}).join(' · ')
 
 // --- Eventos ------------------------------------------------------------------------
 // El juego llama a methods[m](contextoDelStore, { ...context, ...params }).
@@ -153,6 +194,96 @@ const EVENTS = {
     // Boda con Attica (escenario de Agrippa): los premios y castigos van en statChanges.
     attica: (_, { yes }) => { if (yes) A.atticaWedding() },
   },
+  bank: {
+    visible: (_, { characterId }) => VISIBLE.bank(characterId),
+    process() {
+      if (!BANK.canBorrow()) return
+      show({
+        title: t('xBank'), image: ICONS.bank, message: t('xBankOffer', { rate: (BANK.RATE * 100).toFixed(1) }),
+        options: [...BANK.amounts().map(n => ({
+          text: t('xBankTake', { amount: fmt(n) }), statChanges: money(n), action: call('bank', 'borrow', { amount: n }),
+        })), { text: t('xBankNo') }],
+      })
+    },
+    // El dinero ya llegó con statChanges; aquí solo se anota la deuda.
+    borrow: (_, { amount }) => { if (BANK.debt() <= 0) BANK.borrow(amount) },
+    repay: (_, { amount }) => { BANK.repay(amount) },
+  },
+  // Casamentera: se abre desde su botón en la ventana "Arrange Betrothal".
+  matchmaker: {
+    // Pedido en curso (lo que se va eligiendo en los desplegables).
+    draft: null,
+    process(_, { characterId, isMatrilineal }) {
+      const ch = S().characters[characterId]
+      if (!ch || !game.SPOUSES?.valid(ch)) return
+      const spec = EVENTS.matchmaker.draft?.characterId === characterId ? EVENTS.matchmaker.draft.spec : MM.defaultSpec()
+      EVENTS.matchmaker.draft = { characterId, isMatrilineal, spec }
+      show({
+        title: t('xMatchmaker'), image: ICONS.matchmaker,
+        message: t('xMmOrderMsg', { name: A.link(ch) }) + (isMatrilineal ? ' ' + t('xMmMatrilineal') : ''),
+        dropdowns: orderFields().map(([field, title, options]) => ({
+          title, options, selected: Math.max(0, options.findIndex(o => o.value === specGet(spec, field))),
+          onChange: call('matchmaker', 'set', { field }),
+        })),
+        options: [payOption(), cancel()],
+      })
+    },
+    // Cambio en un desplegable: se guarda y se actualiza el precio del botón de pagar.
+    set(_, { field, option }) {
+      const d = EVENTS.matchmaker.draft, m = S().interactionModal
+      if (!d || !option) return
+      specSet(d.spec, field, option.value)
+      if (m?.options?.[0]?.action?.method === 'order') {
+        const pay = payOption()
+        // El juego avisa "You may not be able to afford this" solo al abrir; aquí al cambiar.
+        Object.assign(m.options[0], pay, { cantAfford: !!pay.statChanges.cash && -pay.statChanges.cash * api().calculateScaleByClassFactor() > S().current.cash })
+      }
+    },
+    order() {
+      const d = EVENTS.matchmaker.draft
+      if (d) MM.order(d.characterId, d.isMatrilineal, d.spec)
+    },
+  },
+}
+
+// Botón de pagar el pedido, con el total y su desglose (o gratis).
+function payOption() {
+  const d = EVENTS.matchmaker.draft, q = MM.quote(d.spec), n = MM.COUNTS[d.spec.count]
+  const cost = A.costsOn() ? q.total : 0
+  return {
+    variant: 'info', text: t('xMmOrderPay', { n, total: cost ? fmt(cost) : t('xFree') }),
+    tooltip: A.costsOn() ? quoteText(q) : t('xFree'),
+    statChanges: cost ? money(-cost) : {}, action: call('matchmaker', 'order'),
+  }
+}
+
+// Dinero en statChanges: el juego lo multiplica por el factor de clase, así que se
+// divide antes para que se cobre (o dé) exactamente `real`.
+function money(real) { return { cash: real / api().calculateScaleByClassFactor() } }
+
+// Botón de la casamentera en "Arrange Betrothal", junto a "Pay to look for other
+// matches". La vista es del juego, así que el botón se vuelve a poner si el juego
+// la redibuja.
+const BTN_ID = 'cor-trainer-matchmaker'
+function betrothalButton() {
+  const view = game.betrothalView(), old = document.getElementById(BTN_ID)
+  if (!view || !view.actions || !enabled('matchmaker') || !game.SPOUSES) { old?.remove(); return }
+  if (old && old.parentElement === view.actions) return
+  old?.remove()
+  const b = document.createElement('button')
+  b.id = BTN_ID
+  b.className = 'btn btn-outline-secondary btn-sm'
+  b.title = t('xMatchmakerBtn')
+  const img = document.createElement('img')
+  img.className = 'img-fluid img-icon-action'
+  img.src = ICONS.matchmaker
+  img.setAttribute('aria-hidden', 'true')
+  b.appendChild(img)
+  b.onclick = () => {
+    const v = game.betrothalView()
+    if (v) EVENTS.matchmaker.process(null, { characterId: v.targetId, isMatrilineal: v.isMatrilineal })
+  }
+  view.actions.appendChild(b)
 }
 
 // Los métodos del juego van en "methods"; visible() se usa como preCheck.
@@ -166,8 +297,8 @@ for (const [name, e] of Object.entries(EVENTS)) {
 // Pone o quita los botones según lo activado y quién puede usarlos. Solo toca a los
 // personajes que cambian (cada cambio redibuja a ese personaje en el juego).
 const characterAction = f => ({
-  title: t({ playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt' }[f]),
-  icon: ICONS[f], isAvailable: true, hideWhenBusy: f === 'adopt',
+  title: t({ playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', bank: 'xBankLoan' }[f]),
+  icon: ICONS[f], isAvailable: true, hideWhenBusy: f === 'adopt' || f === 'bank',
 })
 const GLOBAL = {
   theme: () => ({ title: t('xTheme'), icon: ICONS.theme }),
@@ -193,7 +324,13 @@ function sync() {
           preCheck: call(f, 'visible', { characterId: ch.id }), process: call(f, 'process', { characterId: ch.id }) } })
       } else if (!want && cur) a.deleteCharacterAction({ characterId: ch.id, key })
     }
+    // Botones del trainer que ya no existen (p. ej. la casamentera, que ahora está en
+    // la ventana "Arrange Betrothal").
+    for (const key of Object.keys(ch.actions || {})) {
+      if (key.startsWith('trainer_') && !CHARACTER.includes(key.slice(8))) a.deleteCharacterAction({ characterId: ch.id, key })
+    }
   }
+  betrothalButton()
   // Boda con Attica: una ventana del juego, como en el mod (una sola vez).
   if (enabled('scenario') && A.atticaDue()) {
     const p = game.player()
@@ -203,6 +340,21 @@ function sync() {
       options: [
         { text: t('xAtticaYes'), tooltip: t('xAtticaYesTip'), statChanges: A.atticaChanges(true), action: call('scenario', 'attica', { yes: true, characterId: p.id }) },
         { text: t('xAtticaNo'), tooltip: t('xAtticaNoTip'), statChanges: A.atticaChanges(false) },
+      ],
+    })
+    a.processInteractionModalQueue()
+  }
+  // Cobro anual del banco (una vez por año, en el mes del cobro). Sale aunque el
+  // botón del préstamo esté desactivado: hay que pagar al menos el interés.
+  const bill = BANK.dueBill()
+  if (bill) {
+    a.pushInteractionModalQueue({
+      title: t('xBankBill'), image: ICONS.bank,
+      message: t('xBankBillMsg', { debt: fmt(bill.principal), interest: fmt(bill.interest) }),
+      options: [
+        ...bill.extras.map(x => ({ text: t('xBankPayExtra', { extra: fmt(x.extra) }), statChanges: money(-x.total), action: call('bank', 'repay', { amount: x.extra }) })),
+        { text: t('xBankPayAll'), statChanges: money(-bill.all), action: call('bank', 'repay', { amount: bill.principal }) },
+        { text: t('xBankPayInterest'), statChanges: money(-bill.interest) },
       ],
     })
     a.processInteractionModalQueue()

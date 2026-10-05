@@ -167,6 +167,28 @@ const HOOK = load('eventos', req => {
   return { register: (name, ev) => { window.__corEvents[name] = ev }, event: name => 'trainer/' + name }
 })
 
+// Candidatos a pareja de la ventana "Arrange Betrothal" (MarriageView). El juego los
+// genera con [6d52] (dinastía, dote, personalidad, a veces mascota y trato
+// matrimonial), los guarda en current.generatedPotentialSpouseCharacterIds con
+// flagGeneratedPotentialSpouse = { targetCharacterId, isMatrilineal, month, year },
+// muestra los 10 primeros válidos [1eff] (válido = [deda]: soltero, edad casadera…)
+// y los borra a los 6 meses [9427].
+const SPOUSES = load('pareja', req => ({
+  generate: (n, targetId, isMatrilineal) => req('6d52').default(S(), n, targetId, !!isMatrilineal),
+  list: (targetId, isMatrilineal) => req('1eff').default(S(), targetId, false, !!isMatrilineal),
+  valid: ch => !!req('deda').default(S(), ch),
+}))
+
+// La ventana "Arrange Betrothal" abierta: a quién se busca pareja, si es matrilineal
+// (casilla de la ventana) y la caja de acciones del personaje (donde está "Pay to
+// look for other matches"; el juego no la muestra con deudas o sin dinero).
+const betrothalView = () => {
+  if (document.querySelector('#app')?.__vue__?.$route?.name !== 'MarriageView') return null
+  const main = document.querySelector('.container-main'), view = main?.__vue__
+  if (!view || view.$options.name !== 'MarriageView') return null
+  return { targetId: S().selectedMarriageCharacterId, isMatrilineal: !!view.isMatrilineal, actions: main.querySelector('.character-actions') }
+}
+
 // Marca o desmarca logros como conseguidos dentro del juego (para Steam, ver
 // unlockSteam). No se usa la acción addAchievement del juego porque tiene efectos
 // secundarios (cuenta el logro en la partida y a veces quita Stressed/Depressed).
@@ -242,5 +264,5 @@ const SKILL_MAX = 30
 module.exports = {
   store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal, chooseOption,
   setAchievements, setAchievementThisRun, steamBlocked, unlockSteam,
-  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SKILL_MAX,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SPOUSES, betrothalView, SKILL_MAX,
 }

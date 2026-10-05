@@ -78,13 +78,14 @@ La opción recomendada es la de menos riesgo de morir; a igual riesgo, la de má
 
 ## Extras
 
-Lo que hacen los [mods de ejemplo oficiales](https://github.com/CitizenOfRomeDynastyAscendant/example-mods) y el mod de temas de [Prahlad](https://github.com/prahlad-swarnkar/CORmods), pero desde el trainer.
+Lo que hacen los [mods de ejemplo oficiales](https://github.com/CitizenOfRomeDynastyAscendant/example-mods), el mod de temas de [Prahlad](https://github.com/prahlad-swarnkar/CORmods) y el banco y la casamentera de [peritiSumus](https://github.com/peritiSumus/CoR-Mods), pero desde el trainer.
 
 Activar los mods en el juego desactiva los logros de la partida para siempre. El trainer no los activa: usa las mismas funciones que el propio juego usa internamente, así que **los logros del juego y de Steam siguen activos** ([detalles](mecanicas-generales.md#logros-y-modo-mods)).
 
 Cada opción se puede usar desde el panel o **desde la interfaz del juego**, como en los mods originales:
 
-- **En cada personaje:** botones de Jugar como, Divorcio y Dar en adopción, solo en quienes pueden usarlos.
+- **En cada personaje:** botones de Jugar como, Divorcio y Dar en adopción, solo en quienes pueden usarlos, y Pedir un préstamo en tu personaje cuando el banco te presta.
+- **En la ventana "Arrange Betrothal":** el botón de la Casamentera.
 - **En la pantalla principal:** botones de Tema, Nueva dinastía y Escenarios.
 - Los botones abren **ventanas del juego**, con los costos al lado de cada opción y su aviso "You may not be able to afford this" si no te alcanza.
 - En el bloque **"Botones en el juego"** se elige cuáles mostrar; vienen todos activados.
@@ -98,12 +99,14 @@ Cada opción se puede usar desde el panel o **desde la interfaz del juego**, com
 | **Dar en adopción** | Un hijo de hasta 15 años, sin pareja, que no esté estudiando ni de viaje, deja la familia. Como en el mod, el juego lo registra como una muerte y muestra la ventana del funeral. |
 | **Nueva dinastía** | Funda una rama con otro nomen, cognomen y origen (plebeyo, *novus homo*, patricio o liberto), con el mismo prestigio. Pasan a ella tú y tus descendientes que llevan tu apellido; el resto de la familia lo conserva. El mod original, en cambio, renombra la dinastía entera. |
 | **Escenarios** | Empiezas con la familia de Julio César (661 A.U.C.), Marco Agripa (716) o la madre de Marco Antonio (683). La fecha, el dinero, la influencia y las propiedades pasan a ser los del escenario. Tu familia actual sigue en la partida, pero ya no es tu casa. En el escenario de Agripa, a los 25½–26½ años aparece la ventana de la boda con Attica, como en el mod (en el panel, si desactivas el botón de Escenarios). |
+| **Banco de Roma** | Si no tienes deuda y te queda menos de 500, te presta 500, 1000, 2000 o 5000 × (tu clase + los préstamos que ya pediste, hasta 3), al 8,3% anual. En el mes 3 de cada año aparece la ventana del pago y hay que pagar al menos el interés; puedes abonar más o saldar todo. Desde el panel también puedes adelantar pagos, sin interés. |
+| **Casamentera** | Está en la ventana **"Arrange Betrothal"** del juego: el botón de los anillos, junto a "Pay to look for other matches". Abre un pedido a medida: pagas la tarifa de la casamentera (5% de tu dinero, mínimo 20 000) y un **extra por candidato** por cada cosa que pidas: más candidatos (3 a 6), edad (gratis), origen (*novus homo* o patricio), habilidad mínima en cada una de las 4 (10+ a 30+), hasta 2 rasgos y "sin rasgos malos". El precio del botón de pagar se actualiza al cambiar el pedido, con el desglose en su ayuda. Los candidatos los crea el generador del juego (con dote, personalidad y a veces un trato matrimonial o una mascota), se ajustan al pedido y aparecen **primeros en la lista**. Te casas desde ahí, con la ceremonia de siempre. Respeta la casilla de matrimonio matrilineal de la ventana. Como los candidatos del juego, se descartan a los 6 meses o al pagar por otras parejas. En el panel se ven los encargados que siguen disponibles. |
 
-- **Costos.** Divorciar y dar en adopción cobran lo mismo que los mods: el juego multiplica la cantidad por tu factor de clase, y en el divorcio, el dinero también por tus ingresos. Por eso puede costar mucho; el panel muestra la cifra real y avisa si te quedarías en negativo. La casilla "Cobrar los costos de los mods originales" permite hacerlo gratis.
+- **Costos.** Divorciar, dar en adopción y la casamentera cobran lo mismo que los mods (en la casamentera, la tarifa del mod más los extras del pedido). Lo de la casamentera son cantidades fijas. En el divorcio y la adopción, el juego multiplica la cantidad por tu factor de clase, y en el divorcio, el dinero también por tus ingresos. Por eso puede costar mucho; el panel muestra la cifra real y avisa si te quedarías en negativo. La casilla "Cobrar los costos de los mods originales" permite hacerlo gratis (el préstamo del banco y su interés se cobran siempre).
 - **No se pueden deshacer.** Las acciones piden confirmación. Antes de jugar un escenario, guarda en otra ranura.
 - Si tu partida va por un año posterior al del escenario, la fecha retrocede, como en el mod.
 
-Los datos de los escenarios vienen de los mods de ejemplo de Sathvik Software Solutions, con licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) y la condición *Commons Clause* (no se pueden vender). Los temas son del mod "theme" de Prahlad.
+Los datos de los escenarios vienen de los mods de ejemplo de Sathvik Software Solutions, con licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) y la condición *Commons Clause* (no se pueden vender). Los temas son del mod "theme" de Prahlad. El banco y la casamentera son de los mods "Bank of Rome" y "Coemptio" de peritiSumus, de dominio público.
 
 ## Otro puerto
 
