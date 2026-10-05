@@ -1,6 +1,6 @@
 // Extras: lo que hacen los mods de ejemplo del juego (Give For Adoption, New
 // Dynasty?, Play As, Divorce, Play a Scenario), los temas de color del mod "theme"
-// y el banco y la casamentera de peritiSumus (bank_of_rome, coemptio), desde el
+// la casamentera (basada en coemptio de peritiSumus) y las finanzas romanas, desde el
 // panel y con botones dentro del juego (extras/ingame). Se usa
 // la API de mods del juego sin activar el modo mods, así que los logros del juego y
 // de Steam siguen activos. Los costos son los de los mods y se pueden desactivar.
@@ -11,7 +11,7 @@ const A = require('extras/actions')
 const INGAME = require('extras/ingame')
 const THEMES = require('extras/themes')
 const SCENARIOS = require('extras/scenarios')
-const BANK = require('extras/bank')
+const FIN = require('extras/finance')
 const MM = require('extras/matchmaker')
 
 const fmt = n => Math.round(n).toLocaleString()
@@ -47,7 +47,7 @@ module.exports = {
     // --- Botones en el juego ------------------------------------------------------
     const gameBox = ui.group(body, t('xInGame'), 'extras.inGame')
     const gameGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));column-gap:8px', gameBox)
-    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario', bank: 'xBank', matchmaker: 'xMatchmaker' }
+    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario', bank: 'finTitle', matchmaker: 'xMatchmaker' }
     for (const f of INGAME.FEATURES) checkbox(gameGrid, t(TITLES[f]), INGAME.enabled(f), v => INGAME.setEnabled(f, v))
     ui.note(gameBox, t('xInGameNote'))
     // Pone o quita los botones del juego en cada refresco (solo toca lo que cambia).
@@ -195,37 +195,49 @@ module.exports = {
     ui.button(atticaBtns, t('xAtticaNo'), () => atticaDecide(false))
     ui.onRefresh(() => { attica.style.display = !INGAME.enabled('scenario') && A.atticaDue() ? '' : 'none' })
 
-    // --- Banco de Roma ------------------------------------------------------------
-    const bankBox = ui.group(body, t('xBank'), 'extras.bank')
-    const bankInfo = el('div', 'margin:2px 0', bankBox)
-    const borrowLine = el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:2px 0', bankBox)
-    const repayLine = el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:2px 0', bankBox)
-    const bankWhy = ui.note(bankBox, '')
-    ui.note(bankBox, t('xBankNote', { rate: (BANK.RATE * 100).toFixed(1) }))
-    let bankSig = ''
+    // --- Argentarius (banco e inversiones) ----------------------------------------
+    // Las operaciones se hacen en la ventana del juego; aquí se ve lo que tu clase y tus
+    // atributos permiten, tu deuda (con pagos rápidos) y tus inversiones.
+    const finBox = ui.group(body, t('finTitle'), 'extras.finance')
+    const finInfo = el('div', 'font-size:12px;line-height:1.5;margin:2px 0', finBox)
+    const finBtns = el('div', 'display:flex;gap:4px;flex-wrap:wrap;margin:4px 0', finBox)
+    const finList = el('div', 'font-size:12px;margin:2px 0', finBox)
+    ui.note(finBox, t('finNote'))
+    const pct = x => (Math.round(x * 1000) / 10).toLocaleString() + '%'
+    let finSig = ''
     ui.onRefresh(force => {
-      const debt = BANK.debt(), can = BANK.canBorrow(), amounts = BANK.amounts()
-      bankInfo.textContent = debt > 0 ? t('xBankDebt', { debt: fmt(debt), interest: fmt(BANK.interest()) }) : t('xBankNoDebt')
-      bankWhy.textContent = debt > 0 || can ? '' : t('xBankWhy')
-      const now = [debt, can, amounts.join()].join('|')
-      if (now === bankSig && !force) return
-      bankSig = now
-      borrowLine.innerHTML = ''
-      repayLine.innerHTML = ''
-      if (can) for (const n of amounts) ui.button(borrowLine, t('xBankTake', { amount: fmt(n) }), () => {
-        if (!BANK.canBorrow()) return
-        S().current.cash += n
-        BANK.borrow(n)
-      })
-      // Abonos anticipados: sin interés (solo se cobra en el pago anual).
+      if (!S()) return
+      const cls = game.CLASSES?.[FIN.cls()] || FIN.cls(), debt = FIN.debt(), d = FIN.data(), px = FIN.proxy()
+      const avail = kind => FIN.why(kind) ? '—' : '✓'
+      finInfo.innerHTML = ''
+      const line = text => { el('div', '', finInfo).textContent = text }
+      line(t('finPanelClass', { cls }) + (px ? ' · ' + t('finPanelProxy', { commission: pct(px.commission) }) : ''))
+      line(t('finPanelBank', { rate: pct(FIN.bankRate()), limit: fmt(FIN.bankLimit()) }))
+      line(t('finPanelAvail', { lend: avail('lend'), shares: avail('shares'), sea: avail('sea') }))
+      // Valor de cada atributo y, por debajo de 20, su penalización.
+      const sk = k => { const p = FIN.penalty(k); return Math.round(FIN.skillValue(k)) + (p < 1 ? ' (×' + p.toFixed(2) + ')' : '') }
+      line(t('finPanelSkills', { stew: sk('stewardship'), elo: sk('eloquence'), int: sk('intelligence'), com: sk('combat') }))
+      const now = [debt, d.lent.length, d.shares.map(x => x.amount).join(), d.voyages.length, force].join('|')
+      if (now === finSig) return
+      finSig = now
+      finBtns.innerHTML = ''
+      ui.button(finBtns, t('finOpen'), () => INGAME.openFinance(), t('finOpenTip'))
+      // Pagos anticipados de la deuda: sin interés (solo se cobra en Martius).
       if (debt > 0) for (const n of new Set([1000, 5000, debt])) {
         if (n > debt) continue
-        ui.button(repayLine, n === debt ? t('xBankPayOff', { amount: fmt(debt) }) : t('xBankRepay', { amount: fmt(n) }), () => {
-          const amount = Math.min(n, BANK.debt())
+        ui.button(finBtns, n === debt ? t('finPayOff', { amount: fmt(debt) }) : t('finPay', { amount: fmt(n) }), () => {
+          const amount = Math.min(n, FIN.debt())
           S().current.cash -= amount
-          BANK.repay(amount)
+          FIN.repay(amount)
         })
       }
+      finList.innerHTML = ''
+      const item = text => { el('div', 'border-top:1px solid #5a4630;padding:2px 0', finList).textContent = text }
+      if (debt > 0) item(t('finPfDebt', { debt: fmt(debt), rate: pct(FIN.debtRate()) }))
+      for (const l of d.lent) item(t('finPfLent', { family: l.family, amount: fmt(l.amount), rate: pct(l.rate), year: l.endYear }))
+      for (const sh of d.shares) item(t('finPfShare', { contract: t('fin_c_' + sh.contract), amount: fmt(sh.amount) }))
+      for (const v of d.voyages) item(t('finPfVoyage', { route: v.route, amount: fmt(v.amount), rate: pct(v.rate), pooled: v.pooled ? ' (' + t('finPooled') + ')' : '' }))
+      if (!finList.children.length) item(t('finPfEmpty'))
     })
 
     // --- Casamentera --------------------------------------------------------------

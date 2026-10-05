@@ -42,7 +42,7 @@ src/
 ├─ extras/
 │  ├─ actions.js       acciones de los mods (jugar como, divorcio, adopción, dinastía, escenarios)
 │  ├─ ingame.js        botones y ventanas de esas acciones dentro del juego
-│  ├─ bank.js          préstamos del Banco de Roma (del mod de peritiSumus)
+│  ├─ finance.js       argentarius: banco, préstamos a familias, sociedades de publicanos y préstamos marítimos
 │  ├─ matchmaker.js    pedido a la casamentera (basada en el mod "coemptio" de peritiSumus)
 │  ├─ themes.js        temas de color (del mod "theme" de Prahlad)
 │  ├─ scenarios.js     datos de los escenarios (del mod oficial "Play a Scenario")

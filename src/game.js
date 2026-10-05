@@ -167,6 +167,10 @@ const HOOK = load('eventos', req => {
   return { register: (name, ev) => { window.__corEvents[name] = ev }, event: name => 'trainer/' + name }
 })
 
+// Nombres de las clases sociales (current.class 0–7: Proletarii … Equites, Senatores).
+// La clase sale del patrimonio [5485]; Senatores es aparte (flagIsSenetorialClass).
+const CLASSES = load('clases', req => req('83de').default.classes)
+
 // Candidatos a pareja de la ventana "Arrange Betrothal" (MarriageView). El juego los
 // genera con [6d52] (dinastía, dote, personalidad, a veces mascota y trato
 // matrimonial), los guarda en current.generatedPotentialSpouseCharacterIds con
@@ -264,5 +268,5 @@ const SKILL_MAX = 30
 module.exports = {
   store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal, chooseOption,
   setAchievements, setAchievementThisRun, steamBlocked, unlockSteam,
-  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SPOUSES, betrothalView, SKILL_MAX,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SPOUSES, CLASSES, betrothalView, SKILL_MAX,
 }

@@ -16,7 +16,7 @@ const A = require('extras/actions')
 const THEMES = require('extras/themes')
 const SCENARIOS = require('extras/scenarios')
 const ICONS = require('extras/icons')
-const BANK = require('extras/bank')
+const FIN = require('extras/finance')
 const MM = require('extras/matchmaker')
 
 const { t } = i18n
@@ -27,7 +27,7 @@ const VERSION = 1
 const sig = () => VERSION + ':' + i18n.lang()
 // Bloques que se pueden mostrar en el juego, en el orden del panel.
 const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario', 'bank', 'matchmaker']
-const CHARACTER = ['playAs', 'divorce', 'adopt', 'bank']
+const CHARACTER = ['playAs', 'divorce', 'adopt']
 const ACTION = f => 'trainer_' + f // clave de la acción en el juego
 
 const enabled = f => ls.get(KEY, {})[f] ?? true
@@ -46,8 +46,6 @@ const VISIBLE = {
   playAs: id => enabled('playAs') && A.canPlayAs(S().characters[id]),
   divorce: id => enabled('divorce') && A.canDivorce(S().characters[id]),
   adopt: id => enabled('adopt') && A.canAdopt(S().characters[id]),
-  // Como el mod: en el jugador, sin deuda y con menos de 500.
-  bank: id => enabled('bank') && id === S().current.id && BANK.canBorrow(),
 }
 const fmt = n => Math.round(n).toLocaleString()
 const traitName = id => game.TR?.titles[id]?.title || id
@@ -195,20 +193,30 @@ const EVENTS = {
     // Boda con Attica (escenario de Agrippa): los premios y castigos van en statChanges.
     attica: (_, { yes }) => { if (yes) A.atticaWedding() },
   },
+  // Argentarius: el banco y las inversiones (extras/finance). Cada ventana lleva a la
+  // siguiente por la cola del juego (se abre al cerrarse la anterior). El dinero lo
+  // mueven los statChanges de cada opción; si la acción no se puede hacer (algo cambió
+  // entre medio), se devuelve.
   bank: {
-    visible: (_, { characterId }) => VISIBLE.bank(characterId),
-    process() {
-      if (!BANK.canBorrow()) return
-      show({
-        title: t('xBank'), image: ICONS.bank, message: t('xBankOffer', { rate: (BANK.RATE * 100).toFixed(1) }),
-        options: [...BANK.amounts().map(n => ({
-          text: t('xBankTake', { amount: fmt(n) }), statChanges: money(n), action: call('bank', 'borrow', { amount: n }),
-        })), { text: t('xBankNo') }],
-      })
-    },
-    // El dinero ya llegó con statChanges; aquí solo se anota la deuda.
-    borrow: (_, { amount }) => { if (BANK.debt() <= 0) BANK.borrow(amount) },
-    repay: (_, { amount }) => { BANK.repay(amount) },
+    visible: () => enabled('bank'),
+    process() { show(finHub()) },
+    hub() { next(finHub()) },
+    borrowMenu() { next(finBorrow()) },
+    borrow: (_, { amount }) => { FIN.borrow(amount) },
+    repayMenu() { next(finRepay()) },
+    repay: (_, { amount }) => { FIN.repay(amount) },
+    lendMenu() { next(finLend()) },
+    lendRate: (_, { id }) => { next(finLendRate(id)) },
+    lend: (_, { id, rate, amount }) => { if (!FIN.lend(id, rate)) refund(amount) },
+    sharesMenu() { next(finShares()) },
+    buyMenu: (_, { cid }) => { next(finBuy(cid)) },
+    buy: (_, { cid, amount, paid }) => { if (!FIN.buyShares(cid, amount)) refund(paid) },
+    sellMenu() { next(finSell()) },
+    sell: (_, { id, value }) => { if (!FIN.sellShares(id)) refund(-value) },
+    seaMenu() { next(finSea()) },
+    seaAmount: (_, { id }) => { next(finSeaAmount(id)) },
+    sail: (_, { id, amount, pooled }) => { if (!FIN.sail(id, amount, pooled)) refund(amount) },
+    portfolio() { next(finPortfolio()) },
   },
   // Casamentera: se abre desde su botón en la ventana "Arrange Betrothal".
   matchmaker: {
@@ -262,6 +270,177 @@ function payOption() {
 // Dinero en statChanges: el juego lo multiplica por el factor de clase, así que se
 // divide antes para que se cobre (o dé) exactamente `real`.
 function money(real) { return { cash: real / api().calculateScaleByClassFactor() } }
+
+// --- Ventanas del argentarius ---------------------------------------------------------
+// La siguiente ventana, desde la acción de otra: va a la cola y se abre al cerrarse esa.
+function next(modal) {
+  api().pushInteractionModalQueue({ isManualOnly: true, image: ICONS.bank, ...modal })
+  api().processInteractionModalQueue()
+}
+function refund(n) { if (n) S().current.cash += n }
+const pct = x => (Math.round(x * 1000) / 10).toLocaleString() + '%'
+const className = () => game.CLASSES?.[FIN.cls()] || String(FIN.cls())
+const back = (method = 'hub') => ({ text: t('finBack'), action: call('bank', method) })
+const close = () => ({ text: t('finClose') })
+// Opción del menú principal: deshabilitada (con el motivo) si no está disponible.
+const menuOption = (kind, text, method) => {
+  const why = FIN.why(kind)
+  return why ? { text, disabled: true, showDisabledWithTooltip: true, tooltip: t(why, { cls: game.CLASSES?.[FIN.MIN_CLASS[kind]] || '' }) }
+    : { text, action: call('bank', method) }
+}
+// Nota del testaferro para los senadores.
+const proxyNote = () => { const p = FIN.proxy(); return p ? ' ' + t('finProxyNote', { commission: pct(p.commission), scandal: pct(p.scandal) }) : '' }
+
+// Atributos por debajo de 20, con su penalización ('' si no hay).
+function lowSkills() {
+  const low = ['stewardship', 'eloquence', 'intelligence', 'combat'].filter(k => FIN.penalty(k) < 1)
+  return low.length ? ' ' + t('finHubPenalty', { list: low.map(k => t(k) + ' ' + Math.round(FIN.skillValue(k)) + ' (×' + FIN.penalty(k).toFixed(2) + ')').join(', ') }) : ''
+}
+
+function finHub() {
+  const debt = FIN.debt()
+  return {
+    title: t('finTitle'), image: ICONS.bank,
+    message: t('finHubMsg', { cls: className(), rate: pct(FIN.bankRate()), limit: fmt(FIN.bankLimit()) }) +
+      (debt > 0 ? ' ' + t('finHubDebt', { debt: fmt(debt), rate: pct(FIN.debtRate()), interest: fmt(FIN.interest()) }) : '') + lowSkills(),
+    options: [
+      menuOption('bank', t('finBorrow'), 'borrowMenu'),
+      ...(debt > 0 ? [{ text: t('finRepay', { debt: fmt(debt) }), action: call('bank', 'repayMenu') }] : []),
+      menuOption('lend', t('finLend'), 'lendMenu'),
+      menuOption('shares', t('finShares'), 'sharesMenu'),
+      menuOption('sea', t('finSea'), 'seaMenu'),
+      { text: t('finPortfolio'), action: call('bank', 'portfolio') },
+      close(),
+    ],
+  }
+}
+
+function finBorrow() {
+  const offers = FIN.borrowOffers()
+  return {
+    title: t('finBorrow'),
+    message: t('finBorrowMsg', { rate: pct(FIN.bankRate()), limit: fmt(FIN.bankLimit()), room: fmt(FIN.bankRoom()) }),
+    options: [...offers.map(n => ({ text: t('finBorrowAmt', { amount: fmt(n) }), statChanges: money(n), action: call('bank', 'borrow', { amount: n }) })), back()],
+  }
+}
+
+function finRepay() {
+  const debt = FIN.debt()
+  return {
+    title: t('finRepayTitle'), message: t('finRepayMsg', { debt: fmt(debt) }),
+    options: [...[...new Set([1000, 5000, debt])].filter(n => n <= debt).map(n => ({
+      text: n === debt ? t('finPayOff', { amount: fmt(n) }) : t('finPay', { amount: fmt(n) }), statChanges: money(-n), action: call('bank', 'repay', { amount: n }),
+    })), back()],
+  }
+}
+
+function finLend() {
+  const reqs = FIN.lendRequests()
+  return {
+    title: t('finLend'),
+    message: (reqs.length ? t('finLendMsg', { room: fmt(FIN.lendRoom()) }) : t('finLendNone')) + ' ' + t('finSkillsLend'),
+    options: [...reqs.map(r => ({
+      text: t('finLendReq', { family: r.family, amount: fmt(r.amount), years: r.years }),
+      tooltip: t('finDefaultEst', { risk: pct(FIN.shown(FIN.defaultChance(r, 9), r.fuzz)) }),
+      action: call('bank', 'lendRate', { id: r.id }),
+    })), back()],
+  }
+}
+
+function finLendRate(id) {
+  const r = FIN.lendRequests().find(x => x.id === id)
+  if (!r) return finLend()
+  return {
+    title: t('finLend'), message: t('finLendRateMsg', { family: r.family, amount: fmt(r.amount), years: r.years }),
+    options: [...FIN.lendRates().map(rate => ({
+      text: t('finLendAt', { rate }), tooltip: t('finDefaultEst', { risk: pct(FIN.shown(FIN.defaultChance(r, rate), r.fuzz)) }),
+      statChanges: money(-r.amount), action: call('bank', 'lend', { id, rate, amount: r.amount }),
+    })), back('lendMenu')],
+  }
+}
+
+function finShares() {
+  const holdings = FIN.data().shares
+  return {
+    title: t('finShares'),
+    message: t('finSharesMsg', { room: fmt(FIN.shareRoom()), fee: pct(FIN.shareFee()) }) + (FIN.atWar() ? ' ' + t('finAtWar') : '') + proxyNote() + ' ' + t('finSkillsShares'),
+    options: [
+      ...Object.keys(FIN.CONTRACTS).map(cid => {
+        const c = FIN.contract(cid)
+        return { text: t('fin_c_' + cid) + ' · ' + t('finYield', { min: c.min, max: c.max }),
+          tooltip: t('finRiskEst', { risk: pct(FIN.shownContractRisk(cid)) }), action: call('bank', 'buyMenu', { cid }) }
+      }),
+      ...(holdings.length ? [{ text: t('finSellMenu', { n: holdings.length }), action: call('bank', 'sellMenu') }] : []),
+      back(),
+    ],
+  }
+}
+
+function finBuy(cid) {
+  const room = FIN.shareRoom(), fee = FIN.shareFee()
+  const amounts = [...new Set([0.25, 0.5, 1].map(f => Math.round(room * f / 10) * 10))].filter(n => n >= 100)
+  return {
+    title: t('fin_c_' + cid), message: t('finBuyMsg', { room: fmt(room), fee: pct(fee) }),
+    options: [...amounts.map(n => {
+      const paid = Math.round(n * (1 + fee))
+      return { text: t('finInvest', { amount: fmt(n) }), statChanges: money(-paid), action: call('bank', 'buy', { cid, amount: n, paid }) }
+    }), back('sharesMenu')],
+  }
+}
+
+function finSell() {
+  return {
+    title: t('finSellTitle'), message: t('finSellMsg', { factor: pct(FIN.sellFactor()) }),
+    options: [...FIN.data().shares.map(sh => {
+      const value = Math.round(sh.amount * FIN.sellFactor())
+      return { text: t('finSellFor', { contract: t('fin_c_' + sh.contract), amount: fmt(sh.amount), value: fmt(value) }),
+        statChanges: money(value), action: call('bank', 'sell', { id: sh.id, value }) }
+    }), back('sharesMenu')],
+  }
+}
+
+function finSea() {
+  const offers = FIN.voyageOffers()
+  return {
+    title: t('finSea'),
+    message: t('finSeaMsg', { room: fmt(FIN.seaRoom()) }) + (FIN.isWinter() ? ' ' + t('finWinter') : '') + proxyNote() + ' ' + t('finSkillsSea'),
+    options: [...offers.map(o => ({
+      text: t('finVoyage', { route: o.route, rate: o.rate, months: o.months }),
+      tooltip: t('finWreckEst', { risk: pct(FIN.shown(FIN.voyageRisk(o), o.fuzz)) }),
+      action: call('bank', 'seaAmount', { id: o.id }),
+    })), back()],
+  }
+}
+
+function finSeaAmount(id) {
+  const o = FIN.voyageOffers().find(x => x.id === id)
+  if (!o) return finSea()
+  const room = FIN.seaRoom()
+  const amounts = [...new Set([0.25, 0.5, 1].map(f => Math.round(room * f / 10) * 10))].filter(n => n >= 100)
+  const opts = []
+  for (const n of amounts) {
+    opts.push({ text: t('finSail', { amount: fmt(n), rate: o.rate }), tooltip: t('finSailTip'), statChanges: money(-n), action: call('bank', 'sail', { id, amount: n, pooled: false }) })
+    opts.push({ text: t('finSailPool', { amount: fmt(n), rate: o.rate - 5, n: FIN.POOL_SHIPS }), tooltip: t('finSailPoolTip'), statChanges: money(-n), action: call('bank', 'sail', { id, amount: n, pooled: true }) })
+  }
+  return { title: t('finVoyage', { route: o.route, rate: o.rate, months: o.months }), message: t('finSeaAmountMsg', { room: fmt(room) }), options: [...opts, back('seaMenu')] }
+}
+
+function finPortfolio() {
+  const d = FIN.data(), parts = []
+  if (FIN.debt() > 0) parts.push(t('finPfDebt', { debt: fmt(FIN.debt()), rate: pct(FIN.debtRate()) }))
+  for (const l of d.lent) parts.push(t('finPfLent', { family: l.family, amount: fmt(l.amount), rate: pct(l.rate), year: l.endYear }))
+  for (const sh of d.shares) parts.push(t('finPfShare', { contract: t('fin_c_' + sh.contract), amount: fmt(sh.amount) }))
+  for (const v of d.voyages) parts.push(t('finPfVoyage', { route: v.route, amount: fmt(v.amount), rate: pct(v.rate), pooled: v.pooled ? ' (' + t('finPooled') + ')' : '' }))
+  return { title: t('finPortfolio'), message: parts.length ? parts.join(' · ') : t('finPfEmpty'), options: [back(), close()] }
+}
+
+// Informe de resultados (barcos que vuelven, cobros del año): una ventana del juego.
+function finReport(lines) {
+  const text = lines.map(({ key, vars }) => t(key, Object.fromEntries(Object.entries(vars).map(([k, v]) =>
+    [k, k === 'contract' ? t('fin_c_' + v) : typeof v === 'number' ? fmt(v) : v])))).join(' · ')
+  api().pushInteractionModalQueue({ isManualOnly: true, title: t('finReport'), image: ICONS.bank, message: text, options: [{ text: t('xOk') }] })
+  api().processInteractionModalQueue()
+}
 
 // Desplegables largos de las ventanas del trainer (rasgos del pedido, temas): con un
 // alto máximo y barra vertical para recorrerlos. Solo mientras está abierta una
@@ -322,10 +501,11 @@ for (const [name, e] of Object.entries(EVENTS)) {
 // Pone o quita los botones según lo activado y quién puede usarlos. Solo toca a los
 // personajes que cambian (cada cambio redibuja a ese personaje en el juego).
 const characterAction = f => ({
-  title: t({ playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', bank: 'xBankLoan' }[f]),
-  icon: ICONS[f], isAvailable: true, hideWhenBusy: f === 'adopt' || f === 'bank',
+  title: t({ playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt' }[f]),
+  icon: ICONS[f], isAvailable: true, hideWhenBusy: f === 'adopt',
 })
 const GLOBAL = {
+  bank: () => ({ title: t('finTitle'), icon: ICONS.bank }),
   theme: () => ({ title: t('xTheme'), icon: ICONS.theme }),
   dynasty: () => ({ title: t('xDynasty'), icon: ICONS.dynasty }),
   scenario: () => ({ title: t('xScenario'), icon: ICONS.scenario }),
@@ -370,21 +550,27 @@ function sync() {
     })
     a.processInteractionModalQueue()
   }
-  // Cobro anual del banco (una vez por año, en el mes del cobro). Sale aunque el
-  // botón del préstamo esté desactivado: hay que pagar al menos el interés.
-  const bill = BANK.dueBill()
+  // Finanzas: barcos que vuelven y resultados del año (informe), y el cobro anual del
+  // banco. Salen aunque el botón del argentarius esté desactivado: lo invertido sigue
+  // corriendo y hay que pagar al menos el interés.
+  const lines = FIN.tick()
+  if (lines.length) finReport(lines)
+  const bill = FIN.dueBill()
   if (bill) {
     a.pushInteractionModalQueue({
-      title: t('xBankBill'), image: ICONS.bank,
-      message: t('xBankBillMsg', { debt: fmt(bill.principal), interest: fmt(bill.interest) }),
+      title: t('finBill'), image: ICONS.bank, requireChoice: true,
+      message: t('finBillMsg', { debt: fmt(bill.principal), rate: pct(bill.rate), interest: fmt(bill.interest) }),
       options: [
-        ...bill.extras.map(x => ({ text: t('xBankPayExtra', { extra: fmt(x.extra) }), statChanges: money(-x.total), action: call('bank', 'repay', { amount: x.extra }) })),
-        { text: t('xBankPayAll'), statChanges: money(-bill.all), action: call('bank', 'repay', { amount: bill.principal }) },
-        { text: t('xBankPayInterest'), statChanges: money(-bill.interest) },
+        ...bill.extras.map(x => ({ text: t('finPayExtra', { extra: fmt(x.extra) }), statChanges: money(-x.total), action: call('bank', 'repay', { amount: x.extra }) })),
+        { text: t('finPayAll'), statChanges: money(-bill.all), action: call('bank', 'repay', { amount: bill.principal }) },
+        { text: t('finPayInterest'), statChanges: money(-bill.interest) },
       ],
     })
     a.processInteractionModalQueue()
   }
 }
 
-module.exports = { FEATURES, enabled, setEnabled, sync }
+// Abre el argentarius en el juego (desde el panel).
+const openFinance = () => EVENTS.bank.process()
+
+module.exports = { FEATURES, enabled, setEnabled, sync, openFinance }
