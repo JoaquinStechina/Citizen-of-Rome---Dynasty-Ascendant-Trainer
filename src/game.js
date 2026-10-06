@@ -1,10 +1,12 @@
-// Acceso al juego. Es el ÚNICO archivo que conoce los identificadores internos
-// del juego (módulos de webpack) y la forma de su estado Vuex: si una
-// actualización del juego rompe algo, se arregla aquí.
+// Acceso al juego. Es el ÚNICO archivo (con hook.js, que también se ejecuta solo)
+// que conoce los identificadores internos del juego (módulos de webpack) y la forma
+// de su estado Vuex: si una actualización del juego rompe algo, se arregla aquí.
 //
 // Se usan las mismas funciones que usa el juego (rasgos, nivel de trabajo,
 // multiplicadores…), así se aplican sus efectos secundarios. No activa el
 // modo mods, así que los logros siguen activos.
+
+const hook = require('hook')
 
 // --- Estado Vuex ---------------------------------------------------------------
 const store = () => document.querySelector('#app')?.__vue__?.$store
@@ -145,26 +147,11 @@ const DA = load('daapi', req => {
   return { api: () => make({ state: S(), dispatch: store().dispatch, commit: store().commit }, { isDAAPI: false }), newId: req('e381').default }
 })
 
-// Eventos del trainer dentro del juego. Los botones (acciones) y las ventanas del
-// juego llaman a sus métodos por nombre de evento: invokeMethod [bc91] los busca en
-// el contexto de eventos [baa2]. Se envuelve ese contexto en la caché de webpack
-// para que 'trainer/<nombre>' llegue a window.__corEvents[<nombre>] (se actualiza
-// en cada inyección); los demás eventos siguen igual. Si el trainer no está
-// cargado, esos eventos no existen y el juego solo lo anota en la consola.
+// Eventos del trainer dentro del juego (ver hook.js). trainer.mjs ya lo instala al
+// empezar la página; aquí también, por si el juego se abrió antes que el trainer.
 const HOOK = load('eventos', req => {
-  const mod = req.c?.baa2
-  if (!mod) throw new Error('falta el módulo baa2')
-  if (!mod.exports.__cor) {
-    const orig = mod.exports, PREFIX = './trainer/'
-    const wrap = key => {
-      const ev = typeof key === 'string' && key.startsWith(PREFIX) && window.__corEvents?.[key.slice(PREFIX.length)]
-      return ev ? { default: ev } : orig(key)
-    }
-    Object.assign(wrap, { keys: orig.keys, resolve: orig.resolve, id: orig.id, __cor: true })
-    mod.exports = wrap
-  }
-  window.__corEvents = window.__corEvents || {}
-  return { register: (name, ev) => { window.__corEvents[name] = ev }, event: name => 'trainer/' + name }
+  hook.install(req)
+  return { register: (name, ev) => { window.__corEvents[name] = ev }, call: hook.call, ours: hook.ours }
 })
 
 // Nombres de las clases sociales (current.class 0–7: Proletarii … Equites, Senatores).

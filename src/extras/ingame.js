@@ -5,10 +5,10 @@
 // es una ventana del juego.
 //
 // Los botones se guardan en la partida (characters[id].actions, current.actions)
-// como cualquier acción del juego, pero sus métodos son eventos 'trainer/...' que
-// solo existen con el trainer cargado (game.HOOK). Cada botón lleva un preCheck que
-// el juego evalúa al dibujarlo: sin el trainer falla y el juego oculta el botón.
-// Ni las acciones ni las ventanas activan el modo mods (isDAAPI: false).
+// como cualquier acción del juego. Sus métodos pasan por una comprobación del juego
+// que el trainer redirige a sus eventos (hook.js): sin el trainer, los botones no
+// hacen nada y no dan errores. Ni las acciones ni las ventanas activan el modo mods
+// (isDAAPI: false).
 const i18n = require('core/i18n')
 const ls = require('core/storage')
 const game = require('game')
@@ -23,7 +23,7 @@ const { t } = i18n
 const KEY = 'corTrainerInGame'
 // Firma de los botones: si cambia (otro idioma, o una versión nueva de este archivo)
 // se rehacen; si no, se dejan como están para no redibujar a nadie.
-const VERSION = 1
+const VERSION = 2 // 2: eventos por la puerta de game.HOOK (antes 'trainer/...')
 const sig = () => VERSION + ':' + i18n.lang()
 // Bloques que se pueden mostrar en el juego, en el orden del panel.
 const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario', 'bank', 'matchmaker']
@@ -35,8 +35,7 @@ const setEnabled = (f, v) => { const o = ls.get(KEY, {}); o[f] = !!v; ls.set(KEY
 
 const api = () => game.DA.api()
 const S = () => game.S()
-const ev = name => game.HOOK.event(name)
-const call = (name, method, context) => ({ event: ev(name), method, context })
+const call = (name, method, context) => game.HOOK.call(name, method, context)
 // Abre una ventana del juego (si ya hay otra abierta, la del trainer la reemplaza, como en el mod Play As).
 const show = modal => api().displayInteractionModal({ isManualOnly: true, ...modal })
 const cancel = () => ({ text: t('xCancel') })
@@ -448,7 +447,7 @@ function finReport(lines) {
 const MM_CLASS = 'cor-trainer-mm-open', MM_STYLE = 'cor-trainer-mm-style'
 const isOrderOpen = () => {
   const m = S()?.interactionModal
-  return !!m?.show && !!m.dropdowns?.some(d => (d.onChange?.event || '').startsWith(ev('')))
+  return !!m?.show && !!m.dropdowns?.some(d => game.HOOK.ours(d.onChange))
 }
 function orderStyle() {
   if (!document.getElementById(MM_STYLE)) {

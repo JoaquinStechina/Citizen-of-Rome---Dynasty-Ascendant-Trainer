@@ -32,12 +32,12 @@ El panel está en 6 idiomas (español, portugués, inglés, ruso, francés y ale
    ```
    --remote-debugging-port=9222
    ```
-3. Abre el juego y carga tu partida.
-4. En la carpeta del trainer, abre una terminal y ejecuta:
+3. En la carpeta del trainer, abre una terminal y ejecuta:
    ```
    node trainer.mjs
    ```
-   Deja la ventana abierta mientras juegas. Al cerrar el juego, el trainer termina.
+   Deja la ventana abierta mientras juegas. Si el juego todavía no está abierto, el trainer lo espera.
+4. Abre el juego y carga tu partida. Abrir el trainer antes que el juego es lo más seguro: así lo prepara antes de que cargue la partida (ver [problemas frecuentes](docs/guia.md#problemas-frecuentes)).
 5. Dentro del juego, pulsa **F8** para mostrar u ocultar el panel.
 6. **Guarda la partida** después de hacer cambios.
 

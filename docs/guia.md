@@ -162,9 +162,10 @@ $env:CDP_PORT=9333; node trainer.mjs
 
 | Mensaje o problema | Qué hacer |
 |---|---|
-| "No pude conectar con el juego en el puerto 9222" | El juego no está abierto, o le falta la opción de lanzamiento `--remote-debugging-port=9222`. Ciérralo, revisa la opción en Steam y vuelve a abrirlo. |
+| "Esperando al juego en el puerto 9222..." | El juego no está abierto, o le falta la opción de lanzamiento `--remote-debugging-port=9222`. Ábrelo (o ciérralo, revisa la opción en Steam y vuelve a abrirlo): el trainer se conecta solo. |
+| El juego se queda cargando la partida (y "El juego no responde" en el trainer) | Pasa con partidas guardadas con una versión anterior del trainer si se cargan sin él. Cierra el juego con el trainer abierto y vuelve a abrirlo: el trainer lo prepara antes de que cargue la partida y actualiza los botones. Guarda la partida, y desde entonces carga bien también sin el trainer. |
 | "El juego aún no tiene una partida cargada" | Carga una partida: el panel aparece solo al recargar. |
 | No veo el panel | Pulsa **F8**, que lo muestra u oculta. Comprueba que la ventana del trainer dice "Panel listo". |
 | Una sección dice "No disponible" | Probablemente una actualización del juego cambió algo que usa esa sección. El resto del panel sigue funcionando. Ver [Desarrollo](desarrollo.md#si-una-actualización-del-juego-rompe-algo). |
-| "El juego se cerró. Saliendo." | Es normal: el trainer termina al cerrar el juego. |
+| "El juego se cerró." | Es normal: el trainer espera a que vuelvas a abrirlo. **Ctrl+C** lo cierra. |
 | "Node no se reconoce como comando" | Instala [Node.js](https://nodejs.org/) 22 o superior y abre una terminal nueva. |

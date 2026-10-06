@@ -4,14 +4,15 @@
 // Uso:
 //   1. Steam -> juego -> Propiedades -> Opciones de lanzamiento:
 //        --remote-debugging-port=9222
-//   2. Abre el juego y carga tu partida.
-//   3. node trainer.mjs
+//   2. node trainer.mjs (si el juego no está abierto, lo espera)
 //        --dev    reinyecta el panel al guardar cambios en src/ o locales/
 //        --check  valida src/ y locales/ sin abrir el juego
+//   3. Abre el juego y carga tu partida.
 //   4. En el juego, pulsa F8 para mostrar/ocultar el panel del trainer.
 //
 // El script queda conectado y vuelve a inyectar el panel si el juego recarga
-// la página. Ctrl+C para salir (el panel desaparece al recargar el juego).
+// la página; si el juego se cierra, espera a que se vuelva a abrir. Ctrl+C para
+// salir (el panel desaparece al recargar el juego).
 //
 // El panel vive en src/ (se ejecuta DENTRO del juego). Este archivo lo empaqueta
 // en un único script con un cargador mínimo tipo CommonJS: cada archivo de src/
@@ -90,10 +91,29 @@ function bundle() {
   return out + "return require('main')\n})()"
 }
 
+// Script que el juego ejecuta al empezar cada carga de la página, antes que su propio
+// código: src/hook.js (no usa require) y un chunk falso de webpack que corre en cuanto
+// carga chunk-vendors, antes que el juego, y le pasa a hook.js la función require.
+function early() {
+  return [
+    '(() => {',
+    'if (window.__corEarly) return',
+    'window.__corEarly = true',
+    'const module = { exports: {} }',
+    ';(function (require, module, exports) {',
+    readFileSync(join(SRC, 'hook.js'), 'utf8'),
+    '})(null, module, module.exports)',
+    "const id = '__corEarly', q = window.webpackJsonp = window.webpackJsonp || []",
+    "q.push([[id], { [id]: (m, e, r) => { window.__corReq = r; try { module.exports.install(r) } catch (err) { window.__corEarlyError = String(err) } } }, [[id, 'chunk-vendors']]])",
+    '})()',
+  ].join('\n')
+}
+
 // --check: empaqueta y compila (sin ejecutar) para detectar errores sin abrir el juego.
 function check() {
   const code = bundle()
   new Function(code)
+  new Function(early())
   const locales = loadLocales()
   console.log(`OK: ${listModules(SRC).length} módulos, ${Object.keys(locales).length} idiomas (${Object.keys(locales).join(', ')}), ${(code.length / 1024).toFixed(1)} KB.`)
 }
@@ -149,30 +169,31 @@ async function inject(send) {
   return false
 }
 
-async function main() {
-  if (process.argv.includes('--check')) {
-    try { return check() } catch (e) { console.error('Error:', e.message); process.exit(1) }
-  }
+const sleep = ms => new Promise(res => setTimeout(res, ms))
+// Una respuesta del juego, o null si no contesta (p. ej. colgado).
+const within = (p, ms) => Promise.race([p, sleep(ms).then(() => null)])
 
-  let page
-  try {
-    page = await findGamePage()
-  } catch (e) {
-    console.error(`No pude conectar con el juego en el puerto ${PORT}.`)
-    console.error('¿Está abierto con la opción de lanzamiento --remote-debugging-port=9222?')
-    process.exit(1)
-  }
+// Estado de la página: ¿ya tiene la puerta de hook.js? ¿hay una partida cargada?
+const PROBE = `({ early: !!window.__corEarly, hooked: !!window.__corReq?.c?.baa2?.exports?.__cor,
+  loaded: !!document.querySelector('#app')?.__vue__?.$store?.state?.current?.id })`
+
+// Una conexión con el juego, hasta que se cierre.
+async function session(page, dev) {
   console.log(`Conectado a: ${page.title || page.url}`)
-
   const { ws, send, opened, on } = connect(page.webSocketDebuggerUrl)
   await opened
-  await send('Page.enable')
+  const closed = new Promise(res => { ws.onclose = res })
+
+  // hook.js en cada carga de la página, antes que el juego: así una partida con
+  // botones de una versión anterior del trainer no cuelga el juego al cargarse.
+  // Si el juego está colgado no contesta: se sigue igual (within) y se avisa abajo.
+  await within(send('Page.addScriptToEvaluateOnNewDocument', { source: early() }), 5000)
+  await within(send('Page.enable'), 5000)
 
   // Un error en src/ o locales/ se informa sin cerrar el trainer.
   const tryInject = async () => {
     try { return await inject(send) } catch (e) { console.error('Error al inyectar el panel:', e.message); return false }
   }
-
   on(async msg => {
     if (msg.method === 'Page.loadEventFired') {
       console.log('El juego recargó la página, reinyectando panel...')
@@ -180,12 +201,32 @@ async function main() {
     }
   })
 
-  if (await tryInject()) console.log('Panel listo. Pulsa F8 dentro del juego para mostrarlo u ocultarlo.')
+  const probe = await within(send('Runtime.evaluate', { expression: PROBE, returnByValue: true }), 5000)
+  const state = probe?.result?.value
+  if (!state) {
+    console.log('El juego no responde. Si se colgó al cargar una partida, ciérralo y vuelve a abrirlo:')
+    console.log('el trainer lo espera y lo prepara antes de que cargue la partida.')
+  } else if (!state.early && !state.hooked && !state.loaded) {
+    // El juego está empezando sin hook.js: se recarga una vez para que lo tenga.
+    console.log('Preparando el juego antes de que cargue la partida...')
+    await send('Page.reload')
+  } else if (await tryInject()) console.log('Panel listo. Pulsa F8 dentro del juego para mostrarlo u ocultarlo.')
   else console.log('El juego aún no tiene una partida cargada; el panel aparecerá al recargar.')
+
+  if (dev) dev.inject = tryInject
+  console.log('Deja esta ventana abierta. Ctrl+C para salir.')
+  await closed
+}
+
+async function main() {
+  if (process.argv.includes('--check')) {
+    try { return check() } catch (e) { console.error('Error:', e.message); process.exit(1) }
+  }
 
   // --dev: al guardar un archivo de src/ o locales/, reinyecta el panel (agrupando
   // los cambios que llegan casi a la vez, p. ej. varios archivos guardados juntos).
-  if (process.argv.includes('--dev')) {
+  const dev = process.argv.includes('--dev') ? { inject: null } : null
+  if (dev) {
     let timer, changed = new Set()
     for (const dir of [SRC, LOCALES]) {
       watch(dir, { recursive: true }, (event, file) => {
@@ -193,17 +234,35 @@ async function main() {
         changed.add(relative(ROOT, join(dir, file)).replace(/\\/g, '/'))
         clearTimeout(timer)
         timer = setTimeout(async () => {
+          if (!dev.inject) return
           console.log(`Cambios en ${[...changed].join(', ') || 'archivos'}: reinyectando panel...`)
           changed = new Set()
-          if (await tryInject()) console.log('Panel actualizado.')
+          if (await dev.inject()) console.log('Panel actualizado.')
         }, 200)
       })
     }
     console.log('Modo desarrollo: los cambios en src/ y locales/ se aplican al guardar.')
   }
 
-  ws.onclose = () => { console.log('El juego se cerró. Saliendo.'); process.exit(0) }
-  console.log('Deja esta ventana abierta. Ctrl+C para salir.')
+  // Espera al juego (si todavía no está abierto) y vuelve a esperarlo si se cierra.
+  for (let waiting = false; ; ) {
+    let page = null
+    try { page = await findGamePage() } catch {}
+    if (!page) {
+      if (!waiting) {
+        console.log(`Esperando al juego en el puerto ${PORT}...`)
+        console.log('(Steam -> juego -> Propiedades -> Opciones de lanzamiento: --remote-debugging-port=9222)')
+        waiting = true
+      }
+      await sleep(250)
+      continue
+    }
+    waiting = false
+    try { await session(page, dev) } catch (e) { console.error('Error de conexión:', e.message) }
+    if (dev) dev.inject = null
+    console.log('El juego se cerró.')
+    await sleep(1000)
+  }
 }
 
 main()
