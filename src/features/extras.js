@@ -12,6 +12,7 @@ const INGAME = require('extras/ingame')
 const THEMES = require('extras/themes')
 const SCENARIOS = require('extras/scenarios')
 const FIN = require('extras/finance')
+const PROV = require('extras/province')
 const MM = require('extras/matchmaker')
 
 const fmt = n => Math.round(n).toLocaleString()
@@ -47,7 +48,7 @@ module.exports = {
     // --- Botones en el juego ------------------------------------------------------
     const gameBox = ui.group(body, t('xInGame'), 'extras.inGame')
     const gameGrid = el('div', 'display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));column-gap:8px', gameBox)
-    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario', bank: 'finTitle', matchmaker: 'xMatchmaker' }
+    const TITLES = { theme: 'xTheme', playAs: 'xPlayAs', divorce: 'xDivorce', adopt: 'xAdopt', dynasty: 'xDynasty', scenario: 'xScenario', bank: 'finTitle', matchmaker: 'xMatchmaker', province: 'provFeature' }
     for (const f of INGAME.FEATURES) checkbox(gameGrid, t(TITLES[f]), INGAME.enabled(f), v => INGAME.setEnabled(f, v))
     ui.note(gameBox, t('xInGameNote'))
     // Pone o quita los botones del juego en cada refresco (solo toca lo que cambia).
@@ -214,10 +215,16 @@ module.exports = {
       line(t('finPanelClass', { cls }) + (px ? ' · ' + t('finPanelProxy', { commission: pct(px.commission) }) : ''))
       line(t('finPanelBank', { rate: pct(FIN.bankRate()), limit: fmt(FIN.bankLimit()) }))
       line(t('finPanelAvail', { lend: avail('lend'), shares: avail('shares'), sea: avail('sea') }))
+      // Tope de efectivo del juego (lo que pasa se pierde) y lo que hay en el templo.
+      const cap = FIN.cashCap(), excess = FIN.excessCash()
+      line(t('finPanelCap', { cap: Number.isFinite(cap) ? fmt(cap) : '∞', deposit: fmt(FIN.deposited()) }) + (excess > 0 ? ' · ' + t('finPanelExcess', { excess: fmt(excess) }) : ''))
+      line(t('finPanelGrain', { price: FIN.grainPrice().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), stock: fmt(FIN.grain().modii) }) + (FIN.famine() ? ' · ' + t('finGrainFamineShort') : ''))
       // Valor de cada atributo y, por debajo de 20, su penalización.
       const sk = k => { const p = FIN.penalty(k); return Math.round(FIN.skillValue(k)) + (p < 1 ? ' (×' + p.toFixed(2) + ')' : '') }
       line(t('finPanelSkills', { stew: sk('stewardship'), elo: sk('eloquence'), int: sk('intelligence'), com: sk('combat') }))
-      const now = [debt, d.lent.length, d.shares.map(x => x.amount).join(), d.voyages.length, force].join('|')
+      const provs = PROV.list()
+      const now = [debt, d.lent.length, d.shares.map(x => x.amount).join(), d.voyages.length, Math.round(FIN.deposited()), Math.round(FIN.grain().modii),
+        provs.map(r => r.key + r.level + Math.round(r.accrued) + !!r.trial).join(), force].join('|')
       if (now === finSig) return
       finSig = now
       finBtns.innerHTML = ''
@@ -237,6 +244,12 @@ module.exports = {
       for (const l of d.lent) item(t('finPfLent', { family: l.family, amount: fmt(l.amount), rate: pct(l.rate), year: l.endYear }))
       for (const sh of d.shares) item(t('finPfShare', { contract: t('fin_c_' + sh.contract), amount: fmt(sh.amount) }))
       for (const v of d.voyages) item(t('finPfVoyage', { route: v.route, amount: fmt(v.amount), rate: pct(v.rate), pooled: v.pooled ? ' (' + t('finPooled') + ')' : '' }))
+      if (FIN.deposited() > 0) item(t('finPfDeposit', { amount: fmt(FIN.deposited()) }))
+      if (FIN.grain().modii > 0) item(t('finPfGrain', { modii: fmt(FIN.grain().modii), paid: fmt(FIN.grain().paid) }))
+      for (const r of provs) {
+        const ch = S().characters[r.id]
+        item(t(r.trial ? 'provPanelTrial' : 'provPanel', { name: ch ? A.name(ch) : '?', province: r.province, level: t('provLevel_' + (r.level || 'moderate')), amount: fmt(r.accrued) }))
+      }
       if (!finList.children.length) item(t('finPfEmpty'))
     })
 

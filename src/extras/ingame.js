@@ -2,7 +2,8 @@
 // originales: en cada personaje (Jugar como, Divorcio, Dar en adopción, Casamentera,
 // y Pedir un préstamo en el jugador) y en la pantalla principal (Tema, Nueva
 // dinastía, Escenarios). Abren ventanas del juego. El cobro anual del banco también
-// es una ventana del juego.
+// es una ventana del juego, y el gobierno de provincias (extras/province), que no
+// tiene botón: sus ventanas salen cuando alguien de la casa empieza o termina un mandato.
 //
 // Los botones se guardan en la partida (characters[id].actions, current.actions)
 // como cualquier acción del juego. Sus métodos pasan por una comprobación del juego
@@ -18,6 +19,7 @@ const SCENARIOS = require('extras/scenarios')
 const ICONS = require('extras/icons')
 const FIN = require('extras/finance')
 const MM = require('extras/matchmaker')
+const PROV = require('extras/province')
 
 const { t } = i18n
 const KEY = 'corTrainerInGame'
@@ -26,7 +28,7 @@ const KEY = 'corTrainerInGame'
 const VERSION = 2 // 2: eventos por la puerta de game.HOOK (antes 'trainer/...')
 const sig = () => VERSION + ':' + i18n.lang()
 // Bloques que se pueden mostrar en el juego, en el orden del panel.
-const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario', 'bank', 'matchmaker']
+const FEATURES = ['theme', 'playAs', 'divorce', 'adopt', 'dynasty', 'scenario', 'bank', 'matchmaker', 'province']
 const CHARACTER = ['playAs', 'divorce', 'adopt']
 const ACTION = f => 'trainer_' + f // clave de la acción en el juego
 
@@ -216,6 +218,29 @@ const EVENTS = {
     seaAmount: (_, { id }) => { next(finSeaAmount(id)) },
     sail: (_, { id, amount, pooled }) => { if (!FIN.sail(id, amount, pooled)) refund(amount) },
     portfolio() { next(finPortfolio()) },
+    depositMenu() { next(finDeposit()) },
+    deposit: (_, { amount }) => { FIN.deposit(amount) },
+    withdraw: (_, { amount }) => { refund(FIN.withdraw(amount) - amount) },
+    grainMenu() { next(finGrain()) },
+    grainBuy: (_, { modii, paid }) => { if (!FIN.buyGrain(modii, paid)) refund(paid) },
+    // fair: venta al pueblo a precio justo en una hambruna (gana influencia); si no, en
+    // una hambruna vender caro cuesta prestigio.
+    grainSell: (_, { modii, value, fair }) => {
+      const n = FIN.sellGrain(modii)
+      if (n < modii) refund(-Math.round(value * (modii - n) / modii))
+      if (!n || !FIN.famine()) return
+      if (fair) { const inf = FIN.fairSaleInfluence(n); S().current.influence += inf; finReport([{ key: 'finGrainFairDone', vars: { amount: n, influence: inf } }]) }
+      else { const p = FIN.hoardPenalty(n), dyn = game.dynasty(); if (dyn) dyn.prestige -= p; finReport([{ key: 'finGrainHoarded', vars: { prestige: p } }]) }
+    },
+  },
+  // Gobierno de provincias: ventanas al empezar y al terminar un mandato (desde sync).
+  province: {
+    choose: (_, { key, level }) => { PROV.choose(key, level) },
+    trial: (_, { key, defense }) => {
+      asked.delete(key)
+      const r = PROV.trial(key, defense)
+      if (r) next(provVerdict(r))
+    },
   },
   // Casamentera: se abre desde su botón en la ventana "Arrange Betrothal".
   matchmaker: {
@@ -308,6 +333,8 @@ function finHub() {
       menuOption('lend', t('finLend'), 'lendMenu'),
       menuOption('shares', t('finShares'), 'sharesMenu'),
       menuOption('sea', t('finSea'), 'seaMenu'),
+      menuOption('bank', t('finDeposit'), 'depositMenu'),
+      menuOption('bank', t('finGrain'), 'grainMenu'),
       { text: t('finPortfolio'), action: call('bank', 'portfolio') },
       close(),
     ],
@@ -424,12 +451,64 @@ function finSeaAmount(id) {
   return { title: t('finVoyage', { route: o.route, rate: o.rate, months: o.months }), message: t('finSeaAmountMsg', { room: fmt(room) }), options: [...opts, back('seaMenu')] }
 }
 
+// Depósito en el templo de Cástor: lo que pasa del tope de efectivo, una parte o
+// sacarlo. Avisa si depositar te bajaría de clase (lo depositado no cuenta).
+function finDeposit() {
+  const cash = Math.floor(S().current.cash), dep = FIN.deposited(), excess = FIN.excessCash(), cap = FIN.cashCap()
+  const drop = n => FIN.classAfter(n) < FIN.cls() ? t('finDepositDrop', { cls: game.CLASSES?.[FIN.classAfter(n)] || '' }) : ''
+  const opt = n => ({ text: t('finDepositAmt', { amount: fmt(n) }), tooltip: drop(n) || undefined, statChanges: money(-n), action: call('bank', 'deposit', { amount: n }) })
+  const amounts = [...new Set([0.25, 0.5, 1].map(f => Math.floor(cash * f / 10) * 10))].filter(n => n >= 100)
+  const outs = [...new Set([0.25, 0.5, 1].map(f => f === 1 ? Math.floor(dep) : Math.floor(dep * f / 10) * 10))].filter(n => n >= 1)
+  return {
+    title: t('finDeposit'),
+    message: t('finDepositMsg', { amount: fmt(dep), fee: pct(FIN.depositFee()), cap: Number.isFinite(cap) ? fmt(cap) : '∞' }) +
+      ' ' + (excess > 0 ? t('finDepositExcess', { excess: fmt(excess) }) : t('finDepositUnder')) + ' ' + t('finDepositClass'),
+    options: [
+      ...(excess >= 1 ? [{ ...opt(excess), text: t('finDepositExcessBtn', { amount: fmt(excess) }) }] : []),
+      ...amounts.filter(n => n !== excess).map(opt),
+      ...outs.map(n => ({ text: n === Math.floor(dep) ? t('finWithdrawAll', { amount: fmt(n) }) : t('finWithdraw', { amount: fmt(n) }), statChanges: money(n), action: call('bank', 'withdraw', { amount: n }) })),
+      back(),
+    ],
+  }
+}
+
+// Grano en los horrea: precio del mes, cosecha, estimación de la próxima y avisos.
+const price2 = n => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+function finGrain() {
+  const g = FIN.grain(), buy = FIN.grainBuyPrice(), sell = FIN.grainSellPrice(), room = FIN.grainRoom(), h = FIN.harvest().factor
+  const fc = FIN.harvestForecast(), famine = FIN.famine()
+  const notes = [t('finGrainHarvest', { factor: price2(h) }) + (famine ? ' ' + t('finGrainFamineNow') : '')]
+  if (fc !== null) notes.push(t('finGrainForecast', { factor: price2(fc) }))
+  if (FIN.doleNow()) notes.push(t('finGrainDole'))
+  if (FIN.atWar()) notes.push(t('finGrainWar'))
+  if (FIN.ownsCereal()) notes.push(t('finGrainOwn'))
+  const buys = [...new Set([0.25, 0.5, 1].map(f => Math.floor(room * f / 10) * 10))].filter(n => n >= 100)
+  const sells = [...new Set([0.5, 1].map(f => f === 1 ? g.modii : Math.floor(g.modii * f / 10) * 10))].filter(n => n >= 1)
+  return {
+    title: t('finGrain'),
+    message: t('finGrainMsg', { buy: price2(buy), sell: price2(sell), stock: fmt(g.modii), room: fmt(room), paid: fmt(g.paid) }) + ' ' + notes.join(' ') + ' ' + t('finSkillsGrain'),
+    options: [
+      ...buys.map(n => { const paid = Math.round(n * buy); return { text: t('finGrainBuy', { modii: fmt(n), amount: fmt(paid) }), statChanges: money(-paid), action: call('bank', 'grainBuy', { modii: n, paid }) } }),
+      ...sells.map(n => {
+        const value = Math.round(n * sell)
+        return { text: t('finGrainSell', { modii: fmt(n), amount: fmt(value) }), tooltip: famine ? t('finGrainHoardTip', { prestige: fmt(FIN.hoardPenalty(n)) }) : undefined,
+          statChanges: money(value), action: call('bank', 'grainSell', { modii: n, value }) }
+      }),
+      ...(famine && g.modii >= 1 ? [{ text: t('finGrainFair', { modii: fmt(g.modii), amount: fmt(g.modii) }), tooltip: t('finGrainFairTip', { influence: fmt(FIN.fairSaleInfluence(g.modii)) }),
+        statChanges: money(Math.round(g.modii)), action: call('bank', 'grainSell', { modii: g.modii, value: Math.round(g.modii), fair: true }) }] : []),
+      back(),
+    ],
+  }
+}
+
 function finPortfolio() {
   const d = FIN.data(), parts = []
   if (FIN.debt() > 0) parts.push(t('finPfDebt', { debt: fmt(FIN.debt()), rate: pct(FIN.debtRate()) }))
   for (const l of d.lent) parts.push(t('finPfLent', { family: l.family, amount: fmt(l.amount), rate: pct(l.rate), year: l.endYear }))
   for (const sh of d.shares) parts.push(t('finPfShare', { contract: t('fin_c_' + sh.contract), amount: fmt(sh.amount) }))
   for (const v of d.voyages) parts.push(t('finPfVoyage', { route: v.route, amount: fmt(v.amount), rate: pct(v.rate), pooled: v.pooled ? ' (' + t('finPooled') + ')' : '' }))
+  if (FIN.deposited() > 0) parts.push(t('finPfDeposit', { amount: fmt(FIN.deposited()) }))
+  if (FIN.grain().modii > 0) parts.push(t('finPfGrain', { modii: fmt(FIN.grain().modii), paid: fmt(FIN.grain().paid) }))
   return { title: t('finPortfolio'), message: parts.length ? parts.join(' · ') : t('finPfEmpty'), options: [back(), close()] }
 }
 
@@ -439,6 +518,47 @@ function finReport(lines) {
     [k, k === 'contract' ? t('fin_c_' + v) : typeof v === 'number' ? fmt(v) : v])))).join(' · ')
   api().pushInteractionModalQueue({ isManualOnly: true, title: t('finReport'), image: ICONS.bank, message: text, options: [{ text: t('xOk') }] })
   api().processInteractionModalQueue()
+}
+
+// --- Gobierno de provincias ------------------------------------------------------------
+const postTitle = post => game.JOBS?.titles?.[post] || post
+const govName = rec => { const ch = S().characters[rec.id]; return ch ? A.link(ch) : '?' }
+// Juicios ya preguntados en esta sesión (si la ventana se pierde, se vuelve a preguntar
+// al recargar el trainer).
+const asked = new Set()
+
+function provChoose(rec) {
+  const opt = level => {
+    const e = PROV.estimate(rec, level)
+    return { text: t('provLevel_' + level), tooltip: e ? t('provLevelTip', { year: fmt(e.year), trial: pct(e.trial) }) : undefined, action: call('province', 'choose', { key: rec.key, level }) }
+  }
+  return { isManualOnly: true, title: t('provTitle', { post: postTitle(rec.post) }), image: ICONS.province, requireChoice: true,
+    message: t('provChooseMsg', { name: govName(rec), province: rec.province }) + ' ' + t('provSkills'),
+    options: ['honest', 'moderate', 'rapacious'].map(opt) }
+}
+
+function provEnded(rec) {
+  const msg = t('provEndedMsg', { name: govName(rec), province: rec.province, amount: fmt(rec.accrued) }) +
+    (rec.reward ? ' ' + t('provHonestReward', { prestige: fmt(rec.reward.prestige), influence: fmt(rec.reward.influence) }) : '')
+  return { isManualOnly: true, title: t('provTitle', { post: postTitle(rec.post) }), image: ICONS.province, message: msg, options: [{ text: t('xOk') }] }
+}
+
+function provTrial(rec) {
+  const ch = S().characters[rec.id]
+  const opt = defense => {
+    const cost = PROV.defenseCost(rec, defense)
+    return { text: t('provDef_' + defense, { amount: fmt(cost) }), tooltip: t('provConvictTip', { risk: pct(PROV.convictChance(ch, defense)) }) + (defense === 'bribe' ? ' ' + t('provBribeTip', { risk: pct(PROV.DEFENSES.bribe.exposed) }) : ''),
+      statChanges: cost ? money(-cost) : {}, action: call('province', 'trial', { key: rec.key, defense }) }
+  }
+  return { isManualOnly: true, title: t('provTrialTitle'), image: ICONS.province, requireChoice: true,
+    message: t('provTrialMsg', { name: govName(rec), province: rec.province, amount: fmt(rec.accrued), restitution: fmt(rec.accrued * PROV.RESTITUTION) }),
+    options: ['self', 'orator', 'bribe'].map(opt) }
+}
+
+function provVerdict(r) {
+  const parts = [r.convicted ? t('provConvicted', { restitution: fmt(r.restitution), prestige: fmt(r.prestige), influence: fmt(r.influence) }) : t('provAcquitted')]
+  if (r.exposed) parts.push(t('provBribeExposed'))
+  return { title: t('provTrialTitle'), image: ICONS.province, message: parts.join(' '), options: [{ text: t('xOk') }] }
 }
 
 // Desplegables largos de las ventanas del trainer (rasgos del pedido, temas): con un
@@ -554,6 +674,14 @@ function sync() {
   // corriendo y hay que pagar al menos el interés.
   const lines = FIN.tick()
   if (lines.length) finReport(lines)
+  if (enabled('province')) {
+    const pv = PROV.check()
+    for (const rec of pv.ask) a.pushInteractionModalQueue(provChoose(rec))
+    for (const { rec } of pv.ended) a.pushInteractionModalQueue(provEnded(rec))
+    let n = pv.ask.length + pv.ended.length
+    for (const rec of PROV.pendingTrials()) if (!asked.has(rec.key)) { asked.add(rec.key); a.pushInteractionModalQueue(provTrial(rec)); n++ }
+    if (n) a.processInteractionModalQueue()
+  }
   const bill = FIN.dueBill()
   if (bill) {
     a.pushInteractionModalQueue({

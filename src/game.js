@@ -158,6 +158,22 @@ const HOOK = load('eventos', req => {
 // La clase sale del patrimonio [5485]; Senatores es aparte (flagIsSenetorialClass).
 const CLASSES = load('clases', req => req('83de').default.classes)
 
+// Patrimonio. La clase sale del efectivo más el valor de las propiedades [5485, 0698]
+// (lo que está en el argentarius no cuenta). El efectivo tiene un tope [625b]: 9819 ×
+// la administración de la casa [20e3], y por clase hasta Class I; de vez en cuando el
+// juego se lleva lo que pasa del tope ("Greed", "Theft"…) o lo quita sin avisar [f93d].
+const WEALTH_STEPS = [1100, 2500, 5000, 7500, 10000, 25000] // [5485]
+const WEALTH = load('patrimonio', req => ({
+  cashCap: () => req('625b').default(S()),
+  propertyValue: () => req('0698').default(S()),
+  // Clase que tendría la familia con este efectivo (Senatores no depende del dinero).
+  classFor: cash => {
+    if (S().current.flagIsSenetorialClass) return 7
+    const w = req('0698').default(S()) + cash, i = WEALTH_STEPS.findIndex(x => w < x)
+    return i < 0 ? 6 : i
+  },
+}))
+
 // Candidatos a pareja de la ventana "Arrange Betrothal" (MarriageView). El juego los
 // genera con [6d52] (dinastía, dote, personalidad, a veces mascota y trato
 // matrimonial), los guarda en current.generatedPotentialSpouseCharacterIds con
@@ -255,5 +271,5 @@ const SKILL_MAX = 30
 module.exports = {
   store, S, player, dynasty, setReactive, household, pets, householdPets, ageOf, modal, chooseOption,
   setAchievements, setAchievementThisRun, steamBlocked, unlockSteam,
-  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SPOUSES, CLASSES, betrothalView, SKILL_MAX,
+  TR, AGE, JOBS, PETS, PROPS, MODS, ACH, STATS, DA, HOOK, SPOUSES, CLASSES, WEALTH, betrothalView, SKILL_MAX,
 }

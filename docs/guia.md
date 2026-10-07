@@ -89,7 +89,7 @@ Cada opción se puede usar desde el panel o **desde la interfaz del juego**, com
 - **En la pantalla principal:** botones de Argentarius, Tema, Nueva dinastía y Escenarios.
 - Los botones abren **ventanas del juego**, con los costos al lado de cada opción y su aviso "You may not be able to afford this" si no te alcanza.
 - En el bloque **"Botones en el juego"** se elige cuáles mostrar; vienen todos activados.
-- Los botones quedan guardados en la partida, pero **sin el trainer conectado no se muestran**, y vuelven al conectarlo.
+- Los botones quedan guardados en la partida. **Sin el trainer conectado se ven pero no hacen nada** (el juego no los oculta), y vuelven a funcionar al conectarlo.
 
 | Bloque | Qué hace |
 |---|---|
@@ -99,7 +99,8 @@ Cada opción se puede usar desde el panel o **desde la interfaz del juego**, com
 | **Dar en adopción** | Un hijo de hasta 15 años, sin pareja, que no esté estudiando ni de viaje, deja la familia. Como en el mod, el juego lo registra como una muerte y muestra la ventana del funeral. |
 | **Nueva dinastía** | Funda una rama con otro nomen, cognomen y origen (plebeyo, *novus homo*, patricio o liberto), con el mismo prestigio. Pasan a ella tú y tus descendientes que llevan tu apellido; el resto de la familia lo conserva. El mod original, en cambio, renombra la dinastía entera. |
 | **Escenarios** | Empiezas con la familia de Julio César (661 A.U.C.), Marco Agripa (716) o la madre de Marco Antonio (683). La fecha, el dinero, la influencia y las propiedades pasan a ser los del escenario. Tu familia actual sigue en la partida, pero ya no es tu casa. En el escenario de Agripa, a los 25½–26½ años aparece la ventana de la boda con Attica, como en el mod (en el panel, si desactivas el botón de Escenarios). |
-| **Argentarius** (banco e inversiones) | Botón en la pantalla principal con el banco y tres formas históricas de invertir; ver [Argentarius](#argentarius). |
+| **Argentarius** (banco e inversiones) | Botón en la pantalla principal con el banco, tres formas históricas de invertir, el depósito en el templo de Cástor y el grano; ver [Argentarius](#argentarius). |
+| **Gobierno de provincias** | Sin botón: cuando el Senado nombra pro-magistrado a alguien de tu casa, eliges cómo gobierna; ver [Gobierno de provincias](#gobierno-de-provincias). |
 | **Casamentera** | Está en la ventana **"Arrange Betrothal"** del juego: el botón de los anillos, junto a "Pay to look for other matches". Abre un pedido a medida: pagas la tarifa de la casamentera (5% de tu dinero, mínimo 20 000) y un **extra por candidato** por cada cosa que pidas: más candidatos (3 a 6), edad (gratis), origen (*novus homo* o patricio), habilidad mínima en cada una de las 4 (10+ a 30+), hasta 2 rasgos (34 a elegir: genéticos buenos, educación, habilidades y personalidades; la lista tiene barra para recorrerla) y "sin rasgos malos". El precio del botón de pagar se actualiza al cambiar el pedido, con el desglose en su ayuda. Los candidatos los crea el generador del juego (con dote, personalidad y a veces un trato matrimonial o una mascota), se ajustan al pedido y aparecen **primeros en la lista**. Te casas desde ahí, con la ceremonia de siempre. Respeta la casilla de matrimonio matrilineal de la ventana. Como los candidatos del juego, se descartan a los 6 meses o al pagar por otras parejas. En el panel se ven los encargados que siguen disponibles. |
 
 - **Costos.** Divorciar, dar en adopción y la casamentera cobran lo mismo que los mods (en la casamentera, la tarifa del mod más los extras del pedido). Lo de la casamentera son cantidades fijas. En el divorcio y la adopción, el juego multiplica la cantidad por tu factor de clase, y en el divorcio, el dinero también por tus ingresos. Por eso puede costar mucho; el panel muestra la cifra real y avisa si te quedarías en negativo. La casilla "Cobrar los costos de los mods originales" permite hacerlo gratis (el argentarius cobra siempre: es dinero prestado o invertido).
@@ -108,7 +109,7 @@ Cada opción se puede usar desde el panel o **desde la interfaz del juego**, com
 
 ### Argentarius
 
-El banquero romano: un botón en la pantalla principal que abre una ventana del juego con el banco y tres formas de invertir que usaban los romanos. Lo que puedes hacer depende de tu **clase social** (la que calcula el juego por tu patrimonio) y de los **atributos de tu personaje**:
+El banquero romano: un botón en la pantalla principal que abre una ventana del juego con el banco, tres formas de invertir que usaban los romanos, el depósito en un templo y el comercio de grano. Lo que puedes hacer depende de tu **clase social** (la que calcula el juego por tu patrimonio) y de los **atributos de tu personaje**:
 
 | | Proletarii | Class V – II | Class I | Equites | Senatores |
 |---|---|---|---|---|---|
@@ -116,6 +117,8 @@ El banquero romano: un botón en la pantalla principal que abre una ventana del 
 | **Prestar a otras familias** | — | — | sí | sí | sí |
 | **Sociedades de publicanos** | — | — | participaciones chicas | sí | con testaferro |
 | **Préstamo marítimo** | — | Class III y II | sí | sí | con testaferro |
+| **Depósito en el templo** | sí | sí | sí | sí | sí |
+| **Grano en los horrea** | sí (poco) | sí | sí | sí | sí |
 
 Con esclavitud por deudas no se puede hacer nada, salvo pagar.
 
@@ -136,7 +139,7 @@ Los atributos del personaje **no tienen tope**. **20 es neutral**: por debajo pe
 | **Administración** | Límites de todo, lo que cobras (intereses, dividendos y la ganancia de los barcos) y menos impagos de quienes te deben. |
 | **Elocuencia** | Interés del banco (hasta 4 puntos más por debajo de 20; 2 puntos menos por cada 10 de más), comisión al comprar participaciones y precio al venderlas. |
 | **Inteligencia** | Riesgo de contratos y rutas, y lo exacto del riesgo que ves (con poca inteligencia, la cifra es aproximada). |
-| **Combate** | De una deuda impaga recuperas 30% con 20; menos por debajo y 25 puntos más por cada 10 de más, hasta el 100%. |
+| **Combate** | De una deuda impaga recuperas 30% con 20; menos por debajo y 25 puntos más por cada 10 de más, hasta el 100%. Menos robos en el granero. |
 | **Rasgos** | *Honorable*: medio punto menos de interés. *Greedy*: puedes prestar al 15%, pero hay más impagos. *Sly*: el testaferro cobra 10% en vez de 20%, y el riesgo de escándalo baja de 5% a 3%. |
 
 Siguen los límites propios de la economía: el interés nunca baja del 4%, las probabilidades no pasan del 90%, y no se recupera más del 100% de una deuda ni se vende una participación por más de su valor. En la ventana del argentarius aparecen los atributos que tienes por debajo de 20, con su penalización.
@@ -145,8 +148,29 @@ Siguen los límites propios de la economía: el interés nunca baja del 4%, las 
 - **Prestar a otras familias.** Cada mes 3 familias piden dinero por 1 a 3 años. Eliges la tasa: 6%, 9% o 12% (15% con *Greedy*). Cuanto más alta, más probable el impago. Cada Martius pagan el interés, o no pagan y recuperas una parte.
 - **Sociedades de publicanos.** Compras participaciones de 5 contratos del Estado: impuestos de Asia (8–20% anual, el más arriesgado), diezmos de Sicilia, minas de Hispania, obras públicas o abastecer al ejército (3–7% en paz, 10–24% en guerra). Cada Martius cobras el dividendo, o el contrato quiebra y pierdes una parte. Puedes vender las participaciones cuando quieras.
 - **Préstamo marítimo.** Cada mes hay 3 viajes, por ejemplo a Alexandria, Gades o Rhodus: entre 20% y 35% de interés, de 3 a 5 meses y con riesgo de naufragio. En invierno (November a Mercedonius) el mar está "cerrado" y el riesgo se duplica. Puedes prestar en un solo barco (todo o nada) o repartirlo en 50 barcos, como Catón, con 5 puntos menos de interés y casi sin riesgo de perderlo todo.
+- **Depósito en el templo de Cástor.** El juego tiene un **tope de efectivo** que no se ve: unas 9 819 veces la administración de la casa (sumando a todos, con sus multiplicadores). Lo que pasa del tope se pierde de a poco: a veces con una ventana ("Greed", "Theft", "Ransacked", "Embezzlement") y a veces sin aviso. Lo depositado no es efectivo, así que el juego no lo toca. La ventana muestra tu tope y ofrece depositar justo lo que sobra. El templo cobra una custodia del 1% al año en Martius (con elocuencia 20; con más elocuencia baja hasta 0,1%), y muy rara vez (0,4% al año) se incendia y se pierde un cuarto de lo depositado. Se retira cuando quieras. Ojo: **lo depositado no cuenta para la clase** (el juego la calcula con el efectivo y las propiedades), y la ventana avisa si depositar te bajaría de clase. Esto vale para todo lo que está en el argentarius.
+- **Grano en los horrea.** El precio del modius cambia cada mes: barato tras la cosecha (Quintilis a September) y caro antes de la siguiente (Aprilis a Iunius). También cambia con la cosecha del año (se conoce en Quintilis; desde Martius ves una estimación de la próxima, más exacta con más inteligencia), con la guerra (+15%) y un poco al azar. Cada mes se pudre algo (menos con administración) y a veces lo comen las ratas (menos con inteligencia) o lo roban (menos con combate). En primavera, a veces el edil reparte grano barato y ese mes se vende peor. Si tienes tierras de cereal, en la cosecha compras un 10% más barato. Con una cosecha desastrosa hay **hambruna**: el grano vale 1,5 veces más, pero venderlo caro cuesta prestigio (el doble a los Senatores); puedes venderlo al pueblo a precio justo y ganar influencia. En las pruebas, comprar en Sextilis y vender en Maius rindió en promedio un 15% con todos los atributos en 20, −5% con 10 y 28% con 40, y en cualquier caso se puede perder.
 - **Senatores.** Como en Roma, invierten en sociedades y préstamos marítimos con un testaferro: se queda con el 20% de lo que ganes, y cada año hay un 5% de riesgo de escándalo, que cuesta prestigio e influencia.
 - **Resultados.** Los cobros del año (Martius) y los barcos que vuelven llegan en una ventana del juego, el "Informe del argentarius". En el panel (bloque Argentarius) se ven tu clase, lo que te permiten tus atributos y todas tus deudas e inversiones.
+
+### Gobierno de provincias
+
+En el juego, el Senado nombra pro-magistrado (procónsul, propretor, proedil o procuestor) a un senador que ya tuvo el cargo, por un año, y no cobra nada. En Roma, gobernar una provincia era la forma de hacerse rico, y también de terminar juzgado.
+
+- Cuando alguien de tu casa empieza un mandato, una ventana del juego te pregunta cómo gobernará su provincia (por ejemplo Asia, Sicilia o Hispania), con la ganancia estimada y el riesgo de acusación:
+
+| Forma de gobernar | Lo que saca por año (procónsul, administración 20) | Acusación (inteligencia 20) | Al terminar |
+|---|---|---|---|
+| **Con honestidad** | ≈ 4 900 | 3% | +3% de prestigio y +5% de influencia |
+| **Como se espera** | ≈ 19 500 | 15% | — |
+| **Exprimiendo la provincia** | ≈ 58 500 (×1,2 con *Greedy*) | 45% | — |
+
+- Un propretor saca dos tercios de lo de un procónsul, un procuestor un 30% y un proedil un 20%. En guerra, si el gobernador está en campaña, saca un 50% más.
+- Lo que saca se junta cada mes y llega al **terminar el mandato**. En el panel se ve cuánto lleva.
+- Al terminar puede haber un **juicio *de repetundis*** (la ley Calpurnia, del 149 a. C.). Eliges la defensa: defenderse solo (condena del 50% con elocuencia 20), contratar a un gran orador (10% de lo juntado; la mitad de riesgo) o sobornar al jurado (25%; 30% del riesgo, pero hay un 25% de que se sepa, y eso cuesta más prestigio). Si lo condenan, devuelve **el doble** (la ley Acilia, del 123 a. C.), y la familia pierde un 10% de prestigio y un 25% de influencia. Puede dejarte en negativo.
+- Cuentan los atributos **de quien gobierna**: administración = cuánto saca; inteligencia = menos acusaciones; elocuencia = menos condenas. *Honorable* = la mitad de acusaciones. Si muere durante el mandato, la familia cobra y no hay juicio.
+- En las pruebas, con todo en 20 y defendiéndose solo, un procónsul trajo en promedio 4 700 (honesto), 16 700 (como se espera) y 31 200 (exprimiendo; condenado 1 de cada 4 veces).
+- Se activa o desactiva en "Botones en el juego" (Gobierno de provincias).
 
 Los datos de los escenarios vienen de los mods de ejemplo de Sathvik Software Solutions, con licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) y la condición *Commons Clause* (no se pueden vender). Los temas son del mod "theme" de Prahlad. La casamentera se basa en el mod "Coemptio" de peritiSumus, de dominio público. El argentarius reemplaza a su mod "Bank of Rome".
 

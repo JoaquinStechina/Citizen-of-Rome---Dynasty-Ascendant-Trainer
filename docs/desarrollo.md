@@ -26,7 +26,8 @@ Si el juego recarga la página, el trainer vuelve a inyectar el panel.
 trainer.mjs            Node: conexión con el juego, empaquetado de src/, --dev y --check
 src/
 ├─ main.js             punto de entrada dentro del juego (construye el panel, F8)
-├─ game.js             ÚNICO archivo con los identificadores internos del juego
+├─ game.js             ÚNICO archivo con los identificadores internos del juego (con hook.js)
+├─ hook.js             puerta de los botones del trainer en el juego (también corre sola, antes que el juego)
 ├─ core/
 │  ├─ panel.js         ventana: mover, redimensionar, cabecera, rejilla de secciones
 │  ├─ ui.js            piezas reutilizables: filas, edad, editor de rasgos, desplegables
@@ -42,7 +43,8 @@ src/
 ├─ extras/
 │  ├─ actions.js       acciones de los mods (jugar como, divorcio, adopción, dinastía, escenarios)
 │  ├─ ingame.js        botones y ventanas de esas acciones dentro del juego
-│  ├─ finance.js       argentarius: banco, préstamos a familias, sociedades de publicanos y préstamos marítimos
+│  ├─ finance.js       argentarius: banco, préstamos a familias, sociedades de publicanos, préstamos marítimos, depósito en el templo y grano
+│  ├─ province.js      gobierno de provincias de los pro-magistrados de la casa (y juicios de repetundis)
 │  ├─ matchmaker.js    pedido a la casamentera (basada en el mod "coemptio" de peritiSumus)
 │  ├─ themes.js        temas de color (del mod "theme" de Prahlad)
 │  ├─ scenarios.js     datos de los escenarios (del mod oficial "Play a Scenario")

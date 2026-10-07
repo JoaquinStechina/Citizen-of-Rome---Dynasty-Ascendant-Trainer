@@ -4,6 +4,12 @@
 //   - Sociedades de publicanos (contratos del Estado): Class I participaciones chicas,
 //     Equites sin límite especial, Senatores solo con testaferro.
 //   - Préstamo marítimo (fenus nauticum): desde Class III; Senatores con testaferro.
+//   - Depósito en el templo de Cástor: todas las clases. Lo depositado no es efectivo,
+//     así que el juego no se lo lleva por pasar del tope (ver game.WEALTH); cobra una
+//     custodia anual y no cuenta para la clase.
+//   - Grano en los horrea: todas las clases. Se compra barato tras la cosecha
+//     (Quintilis–September) y se vende caro antes de la siguiente (Aprilis–Iunius); se
+//     pudre, lo comen las ratas o lo roban, y el edil a veces reparte grano barato.
 // Lo que tiene tu personaje cuenta (habilidades con sus rasgos, sin tope). 20 es neutral:
 // por debajo penaliza (×(v/20)^1,24: 15 → ×0,70; 10 → ×0,42; mínimo ×0,1) y por encima
 // mejora sin límite, según las decenas de más (30 → 1, 40 → 2…).
@@ -11,7 +17,7 @@
 //     ganancias de los barcos) y menos impagos de quienes te deben.
 //   Elocuencia = menos interés al pedir, mejor precio al comprar y vender participaciones.
 //   Inteligencia = menos riesgo (contratos y rutas) y riesgo mostrado más exacto.
-//   Combate = recuperas más de una deuda impaga.
+//   Combate = recuperas más de una deuda impaga y cuidas mejor el granero.
 // Siguen los límites de la economía: interés mínimo 4%, probabilidades hasta 90%, no se
 // recupera más del 100% de una deuda ni se vende una participación por más de su valor.
 //   Honorable = −0,5 puntos de interés; Greedy = puedes cobrar 15% pero hay más impagos;
@@ -55,16 +61,17 @@ const nowAbs = () => S().year * MONTHS_PER_YEAR + S().month
 // --- Personaje y clase ---------------------------------------------------------------
 const player = () => game.player()
 const PIVOT = 20
-const skillValue = k => Math.max(0, parseFloat(player()?.skills?.[k]) || 0)
+// Todas aceptan otro personaje (ch); por defecto es el tuyo.
+const skillValue = (k, ch = player()) => Math.max(0, parseFloat(ch?.skills?.[k]) || 0)
 // Penalización por debajo de 20 (1 desde 20).
-const penalty = k => { const v = skillValue(k); return v >= PIVOT ? 1 : Math.max(0.1, (v / PIVOT) ** 1.24) }
+const penalty = (k, ch) => { const v = skillValue(k, ch); return v >= PIVOT ? 1 : Math.max(0.1, (v / PIVOT) ** 1.24) }
 // Decenas por encima de 20, sin tope (30 → 1, 40 → 2).
-const above = k => Math.max(0, skillValue(k) - PIVOT) / 10
+const above = (k, ch) => Math.max(0, skillValue(k, ch) - PIVOT) / 10
 // Factor para algo bueno (montos, cobros): la penalización abajo de 20; arriba, +rate por decena.
-const better = (k, rate) => skillValue(k) < PIVOT ? penalty(k) : 1 + rate * above(k)
+const better = (k, rate, ch) => skillValue(k, ch) < PIVOT ? penalty(k, ch) : 1 + rate * above(k, ch)
 // Factor para algo malo (riesgos, comisiones, impagos): crece abajo de 20; arriba se divide.
-const worse = (k, rate) => skillValue(k) < PIVOT ? 2 - penalty(k) : 1 / (1 + rate * above(k))
-const has = tr => !!player()?.traits?.includes(tr)
+const worse = (k, rate, ch) => skillValue(k, ch) < PIVOT ? 2 - penalty(k, ch) : 1 / (1 + rate * above(k, ch))
+const has = (tr, ch = player()) => !!ch?.traits?.includes(tr)
 const cls = () => Math.max(0, Math.min(7, S().current.class || 0))
 const isSenator = () => cls() >= 7
 const debtSlave = () => !!S().current.flagIsDebtSlave
@@ -83,6 +90,10 @@ function data() {
     if (old?.principal > 0) d.debt = { principal: old.principal, rate: old.rate || 0.083, billedYear: old.billedYear ?? null }
     api.setGlobalFlag({ flag: FLAG, data: d })
   }
+  // Partes que llegaron después (datos guardados con una versión anterior).
+  if (!d.deposit) d.deposit = { amount: 0, feeYear: null }
+  if (!d.grain) d.grain = { modii: 0, paid: 0, harvest: null, next: null }
+  if (!d.provinces) d.provinces = {}
   return d
 }
 const save = d => game.DA.api().setGlobalFlag({ flag: FLAG, data: d })
@@ -217,6 +228,102 @@ function sail(offerId, amount, pooled) {
   return true
 }
 
+// --- Depósito en el templo de Cástor -----------------------------------------------
+// Custodia anual: 1% con elocuencia 20 (menos con más elocuencia, nunca menos de 0,1%).
+// Un incendio del templo (muy raro) quema parte de lo depositado.
+const TEMPLE_FIRE = { risk: 0.004, loss: 0.25 }
+const depositFee = () => Math.max(0.001, 0.01 * worse('eloquence', 1))
+const deposited = () => Math.max(0, data().deposit.amount)
+const cashCap = () => game.WEALTH?.cashCap() ?? Infinity
+const excessCash = () => Math.max(0, Math.floor(S().current.cash - cashCap()))
+// Clase que quedaría si sacas `amount` del efectivo (para avisar antes de depositar).
+const classAfter = amount => game.WEALTH ? game.WEALTH.classFor(S().current.cash - amount) : cls()
+function deposit(amount) {
+  const d = data()
+  if (d.deposit.amount <= 0) d.deposit.feeYear = S().month >= YEAR_MONTH ? S().year : S().year - 1 // primera custodia en el próximo Martius
+  d.deposit.amount += amount
+  save(d)
+}
+// Saca hasta `amount`; devuelve lo que sacó.
+function withdraw(amount) {
+  const d = data(), n = Math.min(amount, d.deposit.amount)
+  d.deposit.amount -= n
+  save(d)
+  return n
+}
+
+// --- Grano en los horrea -------------------------------------------------------------
+// Precio de un modius: base 1 × estación × cosecha del año × guerra × un poco cada mes.
+// La cosecha se conoce en Quintilis (mes 7) y vale hasta el Iunius siguiente; desde
+// Martius se puede estimar la próxima (más exacto cuanto más inteligencia). Una cosecha
+// muy mala es hambruna: el grano vale 1,5 veces más, pero vender caro en una hambruna
+// cuesta prestigio (o se puede vender al pueblo a precio justo y ganar influencia).
+const SEASON = [1.08, 1.11, 1.14, 1.17, 1.2, 1.22, 1.14, 0.88, 0.85, 0.9, 0.96, 1, 1.04] // Ianuarius…December
+const HARVEST_MONTH = 7 // Quintilis
+const OWN_HARVEST = [7, 8, 9] // con tierras de cereal se compra más barato
+const GRAIN_LIMIT = [1000, 2500, 5000, 8000, 12000, 25000, 60000, 100000] // modii por clase
+const GRAIN_RISK = {
+  rot: 0.006, // pérdida por mes (humedad, gorgojo)
+  rats: { risk: 0.02, min: 0.08, max: 0.2 }, // por mes
+  theft: { risk: 0.015, loss: 0.12 }, // por mes
+  dole: 0.12, // por mes, Martius–Iunius: el edil reparte grano barato (precio ×0,75)
+  famine: 1.18, // cosecha desde la que hay hambruna
+}
+const CEREAL = ['farmland', 'primeFarmland', 'latifundiumFood']
+const grain = () => data().grain
+const rollHarvest = () => ({ factor: rnd(0.8, 1.25), fuzz: rnd(-0.6, 0.6) })
+// Cosecha que vale ahora; desde Martius también se tira la próxima (para estimarla).
+function harvest() {
+  const d = data(), g = d.grain, s = S()
+  const year = s.month >= HARVEST_MONTH ? s.year : s.year - 1 // la cosecha que se está comiendo
+  if (g.harvest?.year !== year) {
+    const roll = g.next?.year === year ? g.next : rollHarvest()
+    g.harvest = { year, factor: roll.factor }
+    g.next = null
+    save(d)
+  }
+  if (s.month >= YEAR_MONTH && s.month < HARVEST_MONTH && g.next?.year !== s.year) { g.next = { year: s.year, ...rollHarvest() }; save(d) }
+  return g.harvest
+}
+const famine = () => harvest().factor >= GRAIN_RISK.famine
+const doleNow = () => offers('dole', () => S().month >= YEAR_MONTH && S().month < HARVEST_MONTH && Math.random() < GRAIN_RISK.dole)
+const grainPrice = () => {
+  const noise = offers('grainNoise', () => rnd(0.94, 1.06))
+  return SEASON[S().month] * harvest().factor * (famine() ? 1.5 : 1) * (atWar() ? 1.15 : 1) * noise * (doleNow() ? 0.75 : 1)
+}
+// Estimación de la próxima cosecha (null fuera de Martius–Iunius).
+const harvestForecast = () => { harvest(); const n = grain().next; return n ? shown(n.factor, n.fuzz * 0.5) : null }
+const ownsCereal = () => CEREAL.some(k => (S().current.propertyDetails?.[k] || 0) > 0)
+// Al comprar pagas una comisión (3% con elocuencia 20); con tierras de cereal, en la
+// cosecha, 10% menos. Al vender te pagan el 95% (con elocuencia 20; con 10, el 89%;
+// por encima se acerca al 100%).
+const grainBuyPrice = () => grainPrice() * (1 + 0.03 * worse('eloquence', 1)) * (ownsCereal() && OWN_HARVEST.includes(S().month) ? 0.9 : 1)
+const grainSellFactor = () => skillValue('eloquence') < PIVOT ? 0.95 * (0.8 + 0.2 * penalty('eloquence')) : 1 - 0.05 / (1 + above('eloquence'))
+const grainSellPrice = () => grainPrice() * grainSellFactor()
+const grainLimit = () => Math.round(GRAIN_LIMIT[cls()] * size())
+const grainRoom = () => Math.max(0, grainLimit() - grain().modii)
+function buyGrain(modii, paid) {
+  if (modii > grainRoom()) return false
+  const d = data()
+  d.grain.modii += modii
+  d.grain.paid += paid
+  save(d)
+  return true
+}
+// Vende `modii` (o lo que quede); devuelve cuántos vendió.
+function sellGrain(modii) {
+  const d = data(), n = Math.min(modii, d.grain.modii)
+  if (n <= 0) return 0
+  d.grain.paid *= 1 - n / d.grain.modii
+  d.grain.modii -= n
+  save(d)
+  return n
+}
+// Vender caro en una hambruna: prestigio que se pierde (más cuanto más vendes; doble
+// para los senadores). Vender al pueblo a precio justo (1 por modius): influencia.
+const hoardPenalty = modii => { const p = game.dynasty()?.prestige || 0; return Math.round(p * Math.min(0.1, 0.02 * modii / 1000) * (isSenator() ? 2 : 1)) }
+const fairSaleInfluence = modii => Math.round(modii / 20)
+
 // El juego está pasando de mes: lo procesa en un Worker sobre una copia del estado y
 // al terminar aplica los cambios, así que lo que se pague ahora podría perderse.
 const busy = () => !!S()?.current?.showSpinner
@@ -244,6 +351,25 @@ function tick() {
       else lines.push({ key: 'finSeaLost', vars: { route: v.route, amount: v.amount } })
     }
     d.voyages = d.voyages.filter(x => x.due > now)
+    // Grano: se pudre un poco cada mes; a veces ratas o ladrones.
+    const g = d.grain
+    if (g.modii > 0) {
+      const lose = (frac, key) => {
+        const n = Math.min(g.modii, Math.round(g.modii * frac))
+        if (n <= 0) return
+        g.paid *= 1 - n / g.modii
+        g.modii -= n
+        if (key) lines.push({ key, vars: { amount: n } })
+      }
+      lose(GRAIN_RISK.rot * worse('stewardship', 0.5))
+      if (Math.random() < Math.min(0.9, GRAIN_RISK.rats.risk * worse('intelligence', 0.5))) lose(rnd(GRAIN_RISK.rats.min, GRAIN_RISK.rats.max), 'finGrainRats')
+      if (Math.random() < Math.min(0.9, GRAIN_RISK.theft.risk * worse('combat', 0.5))) lose(GRAIN_RISK.theft.loss, 'finGrainTheft')
+    }
+    // La cosecha nueva, si tienes grano o ya lo usaste.
+    if (s.month === HARVEST_MONTH && (g.modii > 0 || g.harvest)) {
+      const h = harvest().factor
+      lines.push({ key: h >= GRAIN_RISK.famine ? 'finGrainFamine' : h > 1.05 ? 'finGrainPoor' : h < 0.92 ? 'finGrainGood' : 'finGrainNormal', vars: {} })
+    }
   }
   if (s.month >= YEAR_MONTH && d.yearDone !== s.year) {
     d.yearDone = s.year
@@ -279,6 +405,18 @@ function tick() {
       }
     }
     d.shares = d.shares.filter(x => x.amount >= 1)
+    // Depósito: custodia del año y, muy raro, un incendio en el templo.
+    if (d.deposit.amount > 0 && (d.deposit.feeYear ?? -Infinity) < s.year) {
+      d.deposit.feeYear = s.year
+      const fee = Math.ceil(d.deposit.amount * depositFee())
+      d.deposit.amount -= fee
+      lines.push({ key: 'finDepositFee', vars: { amount: fee, left: d.deposit.amount } })
+      if (Math.random() < TEMPLE_FIRE.risk) {
+        const lost = Math.round(d.deposit.amount * TEMPLE_FIRE.loss)
+        d.deposit.amount -= lost
+        lines.push({ key: 'finTempleFire', vars: { amount: lost } })
+      }
+    }
     // Testaferro: si se descubre, el senador pierde prestigio e influencia.
     if (px && (d.shares.length || d.voyages.length) && Math.random() < px.scandal) {
       const dyn = game.dynasty()
@@ -299,5 +437,9 @@ module.exports = {
   lendLimit, lendRoom, lendRates, lendRequests, defaultChance, shown, lend,
   contract, contractRisk, shownContractRisk, shareLimit, shareRoom, shareFee, sellFactor, buyShares, sellShares, atWar,
   seaLimit, seaRoom, isWinter, voyageOffers, voyageRisk, voyageRate, sail,
+  depositFee, deposited, cashCap, excessCash, classAfter, deposit, withdraw, TEMPLE_FIRE,
+  SEASON, GRAIN_RISK, grain, harvest, famine, doleNow, grainPrice, harvestForecast, ownsCereal, grainBuyPrice, grainSellPrice,
+  grainLimit, grainRoom, buyGrain, sellGrain, hoardPenalty, fairSaleInfluence,
+  better, worse, has, rnd, nowAbs, YEAR_MONTH,
   busy, tick,
 }
